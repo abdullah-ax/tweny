@@ -20,8 +20,9 @@ Restaurant operators make menu decisions on hunches without data-driven insights
 - **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS
 - **AI/ML**: LangGraph, LangChain, OpenAI GPT-4
 - **UI Components**: @dnd-kit (drag-drop), Zustand (state management), Recharts (analytics)
+- **Database**: PostgreSQL, Drizzle ORM
+- **Auth**: JWT + bcrypt
 - **Styling**: Tailwind CSS, PostCSS
-- **Data**: PostgreSQL, Drizzle ORM (to be added)
 
 ## Quick Start
 
@@ -29,27 +30,66 @@ Restaurant operators make menu decisions on hunches without data-driven insights
 
 - Node.js 18+
 - npm or yarn
+- PostgreSQL database
 - OpenAI API key
 
 ### Installation
 
 1. Clone and install dependencies:
 ```bash
-cd /Users/abdullah/Desktop/tweny
+cd tweny
 npm install
 ```
 
 2. Set up environment variables in `.env.local`:
-```
-OPENAI_API_KEY=your_openai_api_key
+```bash
+cp .env.local.example .env.local
+# Edit .env.local with your values:
+# OPENAI_API_KEY=your_openai_api_key
+# DATABASE_URL=postgresql://user:password@localhost:5432/tweny
+# JWT_SECRET=your_jwt_secret_min_32_chars
 ```
 
-3. Run development server:
+3. Set up database:
+```bash
+# Push schema to database
+npm run db:push
+
+# (Optional) Open Drizzle Studio to view data
+npm run db:studio
+
+# (Optional) Seed demo data
+npm run db:seed
+```
+
+4. Run development server:
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login user
+- `GET /api/auth/me` - Get current user (requires auth)
+
+### Restaurants
+- `GET /api/restaurants` - List user's restaurants
+- `POST /api/restaurants` - Create restaurant
+- `GET /api/restaurants/[id]` - Get restaurant details
+- `PATCH /api/restaurants/[id]` - Update restaurant
+- `DELETE /api/restaurants/[id]` - Delete restaurant
+
+### Menu Management
+- `GET /api/restaurants/[id]/menu` - Get menu items
+- `POST /api/restaurants/[id]/menu` - Create menu item
+
+### Data Import
+- `POST /api/restaurants/[id]/import` - Import from local CSVs
+- `POST /api/restaurants/[id]/upload` - Upload CSV file
 
 ## Usage
 
