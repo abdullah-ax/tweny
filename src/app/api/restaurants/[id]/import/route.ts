@@ -14,9 +14,10 @@ import path from 'path';
 // POST /api/restaurants/[id]/import - Import data from CSVs
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const authHeader = request.headers.get('authorization');
         const user = await getUserFromToken(authHeader);
 
@@ -27,7 +28,7 @@ export async function POST(
             );
         }
 
-        const restaurantId = parseInt(params.id);
+        const restaurantId = parseInt(id);
         if (isNaN(restaurantId)) {
             return NextResponse.json(
                 { error: 'Invalid restaurant ID' },

@@ -10,9 +10,10 @@ import {
 // GET /api/restaurants/[id] - Get restaurant details
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const authHeader = request.headers.get('authorization');
         const user = await getUserFromToken(authHeader);
 
@@ -23,7 +24,7 @@ export async function GET(
             );
         }
 
-        const restaurantId = parseInt(params.id);
+        const restaurantId = parseInt(id);
         if (isNaN(restaurantId)) {
             return NextResponse.json(
                 { error: 'Invalid restaurant ID' },
@@ -63,9 +64,10 @@ export async function GET(
 // PATCH /api/restaurants/[id] - Update restaurant
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const authHeader = request.headers.get('authorization');
         const user = await getUserFromToken(authHeader);
 
@@ -76,7 +78,7 @@ export async function PATCH(
             );
         }
 
-        const restaurantId = parseInt(params.id);
+        const restaurantId = parseInt(id);
         if (isNaN(restaurantId)) {
             return NextResponse.json(
                 { error: 'Invalid restaurant ID' },
@@ -115,9 +117,10 @@ export async function PATCH(
 // DELETE /api/restaurants/[id] - Delete restaurant
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const authHeader = request.headers.get('authorization');
         const user = await getUserFromToken(authHeader);
 
@@ -128,7 +131,7 @@ export async function DELETE(
             );
         }
 
-        const restaurantId = parseInt(params.id);
+        const restaurantId = parseInt(id);
         if (isNaN(restaurantId)) {
             return NextResponse.json(
                 { error: 'Invalid restaurant ID' },

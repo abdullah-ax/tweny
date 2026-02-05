@@ -21,9 +21,10 @@ const createMenuItemSchema = z.object({
 // GET /api/restaurants/[id]/menu - Get menu items
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const authHeader = request.headers.get('authorization');
         const user = await getUserFromToken(authHeader);
 
@@ -34,7 +35,7 @@ export async function GET(
             );
         }
 
-        const restaurantId = parseInt(params.id);
+        const restaurantId = parseInt(id);
         if (isNaN(restaurantId)) {
             return NextResponse.json(
                 { error: 'Invalid restaurant ID' },
@@ -80,9 +81,10 @@ export async function GET(
 // POST /api/restaurants/[id]/menu - Create menu item
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const authHeader = request.headers.get('authorization');
         const user = await getUserFromToken(authHeader);
 
@@ -93,7 +95,7 @@ export async function POST(
             );
         }
 
-        const restaurantId = parseInt(params.id);
+        const restaurantId = parseInt(id);
         if (isNaN(restaurantId)) {
             return NextResponse.json(
                 { error: 'Invalid restaurant ID' },
