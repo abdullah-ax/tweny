@@ -25,14 +25,14 @@ export default function Modal({ isOpen, onClose, title, description, children, s
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto">
             {/* Backdrop */}
-            <div 
+            <div
                 className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
             />
-            
+
             {/* Modal */}
             <div className="flex min-h-full items-center justify-center p-4">
-                <div 
+                <div
                     className={clsx(
                         'relative w-full bg-gray-900 border border-gray-800 rounded-xl shadow-2xl',
                         sizes[size]
@@ -46,12 +46,12 @@ export default function Modal({ isOpen, onClose, title, description, children, s
                             {description && <p className="text-sm text-gray-400 mt-1">{description}</p>}
                         </div>
                     )}
-                    
+
                     {/* Content */}
                     <div className="px-6 py-4">
                         {children}
                     </div>
-                    
+
                     {/* Close button */}
                     <button
                         onClick={onClose}

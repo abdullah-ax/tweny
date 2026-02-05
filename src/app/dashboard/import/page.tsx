@@ -18,7 +18,7 @@ interface ImportResult {
 export default function ImportPage() {
     const searchParams = useSearchParams();
     const preselectedRestaurant = searchParams.get('restaurant');
-    
+
     const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
     const [selectedRestaurant, setSelectedRestaurant] = useState<string>(preselectedRestaurant || '');
     const [file, setFile] = useState<File | null>(null);
@@ -66,7 +66,7 @@ export default function ImportPage() {
         e.preventDefault();
         e.stopPropagation();
         setDragActive(false);
-        
+
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             const droppedFile = e.dataTransfer.files[0];
             if (droppedFile.name.endsWith('.csv')) {
@@ -184,11 +184,10 @@ export default function ImportPage() {
                                     <button
                                         key={type.value}
                                         onClick={() => setDataType(type.value)}
-                                        className={`p-3 rounded-lg border transition-all text-left ${
-                                            dataType === type.value
+                                        className={`p-3 rounded-lg border transition-all text-left ${dataType === type.value
                                                 ? 'bg-white text-black border-white'
                                                 : 'bg-gray-800 text-white border-gray-700 hover:border-gray-600'
-                                        }`}
+                                            }`}
                                     >
                                         <span className="text-xl">{type.icon}</span>
                                         <p className="text-sm font-medium mt-1">{type.label}</p>
@@ -209,11 +208,10 @@ export default function ImportPage() {
                                 onDragLeave={handleDrag}
                                 onDragOver={handleDrag}
                                 onDrop={handleDrop}
-                                className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
-                                    dragActive
+                                className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-colors ${dragActive
                                         ? 'border-white bg-white/5'
                                         : 'border-gray-700 hover:border-gray-600'
-                                }`}
+                                    }`}
                             >
                                 <input
                                     type="file"
@@ -221,7 +219,7 @@ export default function ImportPage() {
                                     onChange={handleFileChange}
                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                 />
-                                
+
                                 {file ? (
                                     <div className="space-y-2">
                                         <div className="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">

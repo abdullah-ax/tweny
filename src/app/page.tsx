@@ -1,18 +1,30 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function HomePage() {
     const router = useRouter();
+    const [isChecking, setIsChecking] = useState(true);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
             router.push('/dashboard');
+        } else {
+            setIsChecking(false);
         }
     }, [router]);
+
+    // Show nothing while checking auth - prevents flash
+    if (isChecking) {
+        return (
+            <div className="min-h-screen bg-black flex items-center justify-center">
+                <div className="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full" />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-black">
@@ -21,14 +33,14 @@ export default function HomePage() {
                 <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
                     <h1 className="text-xl font-bold text-white tracking-tight">tweny</h1>
                     <div className="flex items-center gap-4">
-                        <Link 
-                            href="/login" 
+                        <Link
+                            href="/login"
                             className="text-sm text-gray-400 hover:text-white transition"
                         >
                             Sign in
                         </Link>
-                        <Link 
-                            href="/register" 
+                        <Link
+                            href="/register"
                             className="text-sm px-4 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition"
                         >
                             Get Started
@@ -56,20 +68,20 @@ export default function HomePage() {
 
                         {/* Subheadline */}
                         <p className="text-lg text-gray-400 max-w-xl mx-auto mb-10">
-                            tweny uses AI to analyze your menu performance, identify opportunities, 
+                            tweny uses AI to analyze your menu performance, identify opportunities,
                             and suggest data-driven optimizations to increase revenue.
                         </p>
 
                         {/* CTA */}
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                            <Link 
-                                href="/register" 
+                            <Link
+                                href="/register"
                                 className="w-full sm:w-auto px-8 py-3 bg-white text-black font-medium rounded-lg hover:bg-gray-100 transition text-center"
                             >
                                 Start Free Trial
                             </Link>
-                            <Link 
-                                href="/login" 
+                            <Link
+                                href="/login"
                                 className="w-full sm:w-auto px-8 py-3 bg-gray-900 text-white font-medium rounded-lg border border-gray-800 hover:border-gray-700 transition text-center"
                             >
                                 Sign In
@@ -89,7 +101,7 @@ export default function HomePage() {
                         <h3 className="text-2xl font-bold text-white text-center mb-16">
                             Everything you need to optimize
                         </h3>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             <div className="p-6 bg-gray-900/50 rounded-xl border border-gray-800">
                                 <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center mb-4">
@@ -139,8 +151,8 @@ export default function HomePage() {
                         <p className="text-gray-400 mb-8">
                             Start your free trial today. No credit card required.
                         </p>
-                        <Link 
-                            href="/register" 
+                        <Link
+                            href="/register"
                             className="inline-flex px-8 py-3 bg-white text-black font-medium rounded-lg hover:bg-gray-100 transition"
                         >
                             Get Started Free

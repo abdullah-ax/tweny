@@ -236,7 +236,7 @@ export default function DashboardOverview() {
                             </div>
                             <h3 className="text-lg font-medium text-white mb-2">No restaurants yet</h3>
                             <p className="text-gray-400 mb-6">Get started by adding your first restaurant</p>
-                            <Link 
+                            <Link
                                 href="/dashboard/restaurants"
                                 className="inline-flex items-center px-4 py-2 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors"
                             >

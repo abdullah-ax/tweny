@@ -8,12 +8,12 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
     size?: 'sm' | 'md';
 }
 
-export default function Badge({ 
-    className, 
-    variant = 'default', 
+export default function Badge({
+    className,
+    variant = 'default',
     size = 'md',
-    children, 
-    ...props 
+    children,
+    ...props
 }: BadgeProps) {
     const variants = {
         default: 'bg-gray-800 text-gray-300',

@@ -22,7 +22,7 @@ interface Restaurant {
 export default function AnalyticsPage() {
     const searchParams = useSearchParams();
     const restaurantId = searchParams.get('restaurant');
-    
+
     const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
     const [selectedRestaurant, setSelectedRestaurant] = useState<string>(restaurantId || '');
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -70,7 +70,7 @@ export default function AnalyticsPage() {
                 const items = (data.items || []).map((item: MenuItem, i: number) => ({
                     ...item,
                     popularity: Math.random() * 100,
-                    profitability: item.cost 
+                    profitability: item.cost
                         ? ((parseFloat(item.price) - parseFloat(item.cost)) / parseFloat(item.price)) * 100
                         : Math.random() * 100,
                     category: ['star', 'workhorse', 'puzzle', 'dog'][i % 4] as MenuItem['category'],
@@ -85,7 +85,7 @@ export default function AnalyticsPage() {
     const categorizeItem = (popularity: number, profitability: number): MenuItem['category'] => {
         const highPop = popularity > 50;
         const highProfit = profitability > 50;
-        
+
         if (highPop && highProfit) return 'star';
         if (highPop && !highProfit) return 'workhorse';
         if (!highPop && highProfit) return 'puzzle';
@@ -236,7 +236,7 @@ export default function AnalyticsPage() {
                                         </p>
                                     </div>
                                 </div>
-                                
+
                                 {/* Axis labels */}
                                 <div className="mt-4 flex justify-between text-xs text-gray-500">
                                     <span>← Low Popularity</span>

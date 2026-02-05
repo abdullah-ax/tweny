@@ -25,7 +25,7 @@ interface MenuSection {
 // Mock sections for demo
 const createMockSections = (items: MenuItem[]): MenuSection[] => {
     const categories: Record<string, MenuItem[]> = {};
-    
+
     items.forEach(item => {
         const cat = item.category || 'Other';
         if (!categories[cat]) categories[cat] = [];
@@ -203,9 +203,8 @@ export default function EditorPage() {
                                                     onDragStart={() => handleDragStart(item.id.toString())}
                                                     onDragEnd={handleDragEnd}
                                                     onClick={() => setSelectedItem(item)}
-                                                    className={`p-4 flex items-center gap-4 cursor-pointer transition-colors hover:bg-gray-800/50 border-l-4 ${getMarginClass(item)} ${
-                                                        selectedItem?.id === item.id ? 'bg-gray-800/50' : ''
-                                                    } ${draggedItem === item.id.toString() ? 'opacity-50' : ''}`}
+                                                    className={`p-4 flex items-center gap-4 cursor-pointer transition-colors hover:bg-gray-800/50 border-l-4 ${getMarginClass(item)} ${selectedItem?.id === item.id ? 'bg-gray-800/50' : ''
+                                                        } ${draggedItem === item.id.toString() ? 'opacity-50' : ''}`}
                                                 >
                                                     <button className="text-gray-600 hover:text-white cursor-grab">
                                                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

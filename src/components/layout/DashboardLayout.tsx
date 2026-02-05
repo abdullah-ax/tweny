@@ -66,7 +66,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="min-h-screen bg-black">
             {/* Mobile sidebar backdrop */}
             {sidebarOpen && (
-                <div 
+                <div
                     className="fixed inset-0 bg-black/50 z-40 lg:hidden"
                     onClick={() => setSidebarOpen(false)}
                 />
@@ -91,17 +91,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     {/* Navigation */}
                     <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
                         {navigation.map((item) => {
-                            const isActive = pathname === item.href || 
+                            const isActive = pathname === item.href ||
                                 (item.href !== '/dashboard' && pathname.startsWith(item.href));
-                            
+
                             return (
                                 <Link
                                     key={item.name}
                                     href={item.href}
                                     className={clsx(
                                         'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                                        isActive 
-                                            ? 'bg-white text-black' 
+                                        isActive
+                                            ? 'bg-white text-black'
                                             : 'text-gray-400 hover:text-white hover:bg-gray-900'
                                     )}
                                 >
@@ -151,15 +151,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         >
                             <MenuIcon className="w-6 h-6" />
                         </button>
-                        
+
                         <div className="flex-1" />
-                        
+
                         <div className="flex items-center gap-4">
                             <span className="text-sm text-gray-400 hidden sm:block">
-                                {new Date().toLocaleDateString('en-US', { 
-                                    weekday: 'short', 
-                                    month: 'short', 
-                                    day: 'numeric' 
+                                {new Date().toLocaleDateString('en-US', {
+                                    weekday: 'short',
+                                    month: 'short',
+                                    day: 'numeric'
                                 })}
                             </span>
                         </div>

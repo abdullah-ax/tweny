@@ -57,17 +57,17 @@ export default function RestaurantDetailPage() {
     const fetchData = async () => {
         try {
             const token = localStorage.getItem('token');
-            
+
             // Fetch restaurant details
             const resRestaurant = await fetch(`/api/restaurants/${restaurantId}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            
+
             if (!resRestaurant.ok) {
                 router.push('/dashboard/restaurants');
                 return;
             }
-            
+
             const restaurantData = await resRestaurant.json();
             setRestaurant(restaurantData.restaurant);
 
@@ -75,7 +75,7 @@ export default function RestaurantDetailPage() {
             const resMenu = await fetch(`/api/restaurants/${restaurantId}/menu`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            
+
             if (resMenu.ok) {
                 const menuData = await resMenu.json();
                 setMenuItems(menuData.items || []);
@@ -311,11 +311,10 @@ export default function RestaurantDetailPage() {
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 {margin !== null ? (
-                                                    <span className={`text-sm font-medium ${
-                                                        margin >= 70 ? 'text-green-400' :
-                                                        margin >= 50 ? 'text-yellow-400' :
-                                                        'text-red-400'
-                                                    }`}>
+                                                    <span className={`text-sm font-medium ${margin >= 70 ? 'text-green-400' :
+                                                            margin >= 50 ? 'text-yellow-400' :
+                                                                'text-red-400'
+                                                        }`}>
                                                         {margin}%
                                                     </span>
                                                 ) : (
