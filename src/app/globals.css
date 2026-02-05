@@ -3,9 +3,112 @@
 @tailwind utilities;
 
 :root {
-    color-scheme: light;
+    color-scheme: dark;
 }
 
 body {
-    @apply bg-white text-slate-900;
+    @apply bg-black text-white antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-gray-700 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-600;
+}
+
+/* Selection */
+::selection {
+    @apply bg-white/20;
+}
+
+/* Focus ring */
+*:focus-visible {
+    @apply outline-none ring-2 ring-white/30 ring-offset-2 ring-offset-black;
+}
+
+/* Smooth transitions */
+* {
+    @apply transition-colors duration-150;
+}
+
+/* Input autofill dark mode fix */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-text-fill-color: white;
+    -webkit-box-shadow: 0 0 0px 1000px #1f2937 inset;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Table styles */
+table {
+    @apply w-full;
+}
+
+th {
+    @apply text-left text-xs font-medium text-gray-400 uppercase tracking-wider;
+}
+
+td {
+    @apply text-sm text-gray-300;
+}
+
+/* Card hover effect */
+.card-hover {
+    @apply transition-all duration-200 hover:border-gray-700 hover:shadow-lg hover:shadow-black/20;
+}
+
+/* Gradient text */
+.gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400;
+}
+
+/* Glow effect */
+.glow {
+    box-shadow: 0 0 40px -10px rgba(255, 255, 255, 0.15);
+}
+
+/* Glass effect */
+.glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+}
+
+/* Animate pulse slow */
+@keyframes pulse-slow {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.animate-pulse-slow {
+    animation: pulse-slow 3s ease-in-out infinite;
+}
+
+/* Loading skeleton */
+.skeleton {
+    @apply bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 bg-[length:200%_100%] animate-[shimmer_1.5s_infinite];
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
 }

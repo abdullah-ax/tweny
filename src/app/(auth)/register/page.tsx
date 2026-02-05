@@ -57,26 +57,27 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-            <div className="w-full max-w-md p-8">
-                <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-gray-700">
-                    {/* Logo */}
-                    <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold text-white mb-2">tweny AI</h1>
-                        <p className="text-gray-400">Create your account</p>
-                    </div>
+        <div className="min-h-screen flex items-center justify-center bg-black">
+            <div className="w-full max-w-sm px-6">
+                {/* Logo */}
+                <div className="text-center mb-8">
+                    <h1 className="text-2xl font-bold text-white tracking-tight">tweny</h1>
+                    <p className="text-gray-500 text-sm mt-1">Create your account</p>
+                </div>
 
+                {/* Card */}
+                <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
                     {/* Error Alert */}
                     {error && (
-                        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm">
+                        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
                             {error}
                         </div>
                     )}
 
                     {/* Register Form */}
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-400 mb-1.5">
                                 Name
                             </label>
                             <input
@@ -84,13 +85,13 @@ export default function RegisterPage() {
                                 type="text"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent text-sm"
                                 placeholder="Your name"
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-400 mb-1.5">
                                 Email
                             </label>
                             <input
@@ -99,13 +100,13 @@ export default function RegisterPage() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
-                                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent text-sm"
                                 placeholder="you@example.com"
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-400 mb-1.5">
                                 Password
                             </label>
                             <input
@@ -114,13 +115,13 @@ export default function RegisterPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent text-sm"
                                 placeholder="••••••••"
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
+                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-400 mb-1.5">
                                 Confirm Password
                             </label>
                             <input
@@ -129,7 +130,7 @@ export default function RegisterPage() {
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
-                                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent text-sm"
                                 placeholder="••••••••"
                             />
                         </div>
@@ -137,23 +138,23 @@ export default function RegisterPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white font-medium rounded-lg transition duration-200 flex items-center justify-center"
+                            className="w-full py-2.5 px-4 bg-white hover:bg-gray-100 disabled:bg-gray-300 text-black font-medium rounded-lg transition text-sm flex items-center justify-center"
                         >
                             {loading ? (
-                                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                 </svg>
                             ) : (
-                                'Create Account'
+                                'Create account'
                             )}
                         </button>
                     </form>
 
                     {/* Login Link */}
-                    <p className="mt-6 text-center text-gray-400">
+                    <p className="mt-4 text-center text-gray-500 text-sm">
                         Already have an account?{' '}
-                        <Link href="/login" className="text-blue-400 hover:text-blue-300 transition">
+                        <Link href="/login" className="text-white hover:underline">
                             Sign in
                         </Link>
                     </p>
