@@ -1,30 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function HomePage() {
-    const router = useRouter();
-    const [isChecking, setIsChecking] = useState(true);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
-        if (token) {
-            router.push('/dashboard');
-        } else {
-            setIsChecking(false);
-        }
-    }, [router]);
-
-    // Show nothing while checking auth - prevents flash
-    if (isChecking) {
-        return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
-                <div className="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full" />
-            </div>
-        );
-    }
+        setIsLoggedIn(!!token);
+    }, []);
 
     return (
         <div className="min-h-screen bg-black">
@@ -33,18 +18,29 @@ export default function HomePage() {
                 <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
                     <h1 className="text-xl font-bold text-white tracking-tight">tweny</h1>
                     <div className="flex items-center gap-4">
-                        <Link
-                            href="/login"
-                            className="text-sm text-gray-400 hover:text-white transition"
-                        >
-                            Sign in
-                        </Link>
-                        <Link
-                            href="/register"
-                            className="text-sm px-4 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition"
-                        >
-                            Get Started
-                        </Link>
+                        {isLoggedIn ? (
+                            <Link
+                                href="/dashboard"
+                                className="text-sm px-4 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition"
+                            >
+                                Dashboard
+                            </Link>
+                        ) : (
+                            <>
+                                <Link
+                                    href="/login"
+                                    className="text-sm text-gray-400 hover:text-white transition"
+                                >
+                                    Sign in
+                                </Link>
+                                <Link
+                                    href="/register"
+                                    className="text-sm px-4 py-2 bg-white text-black rounded-lg font-medium hover:bg-gray-100 transition"
+                                >
+                                    Get Started
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             </header>
@@ -75,7 +71,7 @@ export default function HomePage() {
                         {/* CTA */}
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Link
-                                href="/register"
+                                href={isLoggedIn ? "/dashboard" : "/register"}
                                 className="w-full sm:w-auto px-8 py-3 bg-white text-black font-medium rounded-lg hover:bg-gray-100 transition text-center"
                             >
                                 Start Free Trial
