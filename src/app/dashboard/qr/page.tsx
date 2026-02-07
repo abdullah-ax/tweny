@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button, Card, CardContent } from '@/components/ui';
 
@@ -9,7 +9,7 @@ interface Restaurant {
     name: string;
 }
 
-export default function QRCodePage() {
+function QRCodeContent() {
     const searchParams = useSearchParams();
     const preselectedRestaurant = searchParams.get('restaurant');
 
@@ -263,5 +263,13 @@ export default function QRCodePage() {
                 </CardContent>
             </Card>
         </div>
+    );
+}
+
+export default function QRCodePage() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-2 border-white border-t-transparent rounded-full" /></div>}>
+            <QRCodeContent />
+        </Suspense>
     );
 }

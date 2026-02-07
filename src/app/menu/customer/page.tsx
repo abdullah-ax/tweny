@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 // Types
@@ -75,7 +75,7 @@ interface CustomSpeechRecognition {
 
 type SpeechRecognitionConstructor = new () => CustomSpeechRecognition;
 
-export default function CustomerMenuPage() {
+function CustomerMenuContent() {
     const searchParams = useSearchParams();
     const restaurantId = searchParams.get('r') || '1';
     const tableNumber = searchParams.get('t') || '';
@@ -955,5 +955,18 @@ export default function CustomerMenuPage() {
                 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
             `}</style>
         </div>
+    );
+}
+
+// Wrap in Suspense for useSearchParams
+export default function CustomerMenuPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+                <div className="animate-spin h-8 w-8 border-2 border-orange-500 border-t-transparent rounded-full" />
+            </div>
+        }>
+            <CustomerMenuContent />
+        </Suspense>
     );
 }

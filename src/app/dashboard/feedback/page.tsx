@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button, Card, CardContent, Badge } from '@/components/ui';
 
@@ -26,7 +26,7 @@ interface EventSummary {
     topClickedItems: Array<{ name: string; count: number }>;
 }
 
-export default function FeedbackPage() {
+function FeedbackContent() {
     const searchParams = useSearchParams();
     const preselectedRestaurant = searchParams.get('restaurant');
 
@@ -301,5 +301,12 @@ export default function FeedbackPage() {
                 </>
             )}
         </div>
+    );
+}
+export default function FeedbackPage() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-2 border-white border-t-transparent rounded-full" /></div>}>
+            <FeedbackContent />
+        </Suspense>
     );
 }

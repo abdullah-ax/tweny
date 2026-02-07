@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button, Card, CardContent, Badge } from '@/components/ui';
 
@@ -15,7 +15,7 @@ interface ImportResult {
     count?: number;
 }
 
-export default function ImportPage() {
+function ImportContent() {
     const searchParams = useSearchParams();
     const preselectedRestaurant = searchParams.get('restaurant');
 
@@ -356,5 +356,13 @@ export default function ImportPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function ImportPage() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-2 border-white border-t-transparent rounded-full" /></div>}>
+            <ImportContent />
+        </Suspense>
     );
 }

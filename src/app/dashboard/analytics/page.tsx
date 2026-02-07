@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, Badge } from '@/components/ui';
 
@@ -43,7 +43,7 @@ interface OrderAnalytics {
     recentOrders: Order[];
 }
 
-export default function AnalyticsPage() {
+function AnalyticsContent() {
     const searchParams = useSearchParams();
     const restaurantId = searchParams.get('restaurant');
 
@@ -256,5 +256,13 @@ export default function AnalyticsPage() {
                 </Card>
             )}
         </div>
+    );
+}
+
+export default function AnalyticsPage() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-2 border-white border-t-transparent rounded-full" /></div>}>
+            <AnalyticsContent />
+        </Suspense>
     );
 }
