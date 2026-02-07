@@ -185,8 +185,8 @@ function ImportContent() {
                                         key={type.value}
                                         onClick={() => setDataType(type.value)}
                                         className={`p-3 rounded-lg border transition-all text-left ${dataType === type.value
-                                                ? 'bg-white text-black border-white'
-                                                : 'bg-gray-800 text-white border-gray-700 hover:border-gray-600'
+                                            ? 'bg-white text-black border-white'
+                                            : 'bg-gray-800 text-white border-gray-700 hover:border-gray-600'
                                             }`}
                                     >
                                         <span className="text-xl">{type.icon}</span>
@@ -209,8 +209,8 @@ function ImportContent() {
                                 onDragOver={handleDrag}
                                 onDrop={handleDrop}
                                 className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-colors ${dragActive
-                                        ? 'border-white bg-white/5'
-                                        : 'border-gray-700 hover:border-gray-600'
+                                    ? 'border-white bg-white/5'
+                                    : 'border-gray-700 hover:border-gray-600'
                                     }`}
                             >
                                 <input

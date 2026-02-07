@@ -177,9 +177,9 @@ function AnalyticsContent() {
                                     {orderAnalytics.topItems.slice(0, 10).map((item, idx) => (
                                         <div key={item.id} className="flex items-center gap-4 p-3 bg-gray-800/50 rounded-lg">
                                             <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${idx === 0 ? 'bg-yellow-500 text-black' :
-                                                    idx === 1 ? 'bg-gray-300 text-black' :
-                                                        idx === 2 ? 'bg-orange-600 text-white' :
-                                                            'bg-gray-700 text-gray-300'
+                                                idx === 1 ? 'bg-gray-300 text-black' :
+                                                    idx === 2 ? 'bg-orange-600 text-white' :
+                                                        'bg-gray-700 text-gray-300'
                                                 }`}>
                                                 {idx + 1}
                                             </div>
