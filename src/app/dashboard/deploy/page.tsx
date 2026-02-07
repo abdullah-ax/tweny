@@ -316,7 +316,7 @@ Tell me what you'd like to change about your menu design.`,
             // Initialize add buttons for all items with data-item-id
             document.querySelectorAll('[data-item-id]').forEach(el => {
                 const itemId = el.getAttribute('data-item-id');
-                const name = el.getAttribute('data-name') || el.querySelector('[data-name]')?.getAttribute('data-name') || 'Item';
+                const name = el.getAttribute('data-name') || el.querySelector('.item-name')?.textContent || el.querySelector('h3')?.textContent || 'Item';
                 const priceStr = el.getAttribute('data-price') || el.querySelector('[data-price]')?.getAttribute('data-price') || '0';
                 const price = parseFloat(priceStr) || 0;
                 const item = { id: itemId, name, price };

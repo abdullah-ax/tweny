@@ -88,7 +88,7 @@ export default function StrategyPage() {
             router.push('/dashboard/onboarding');
             return;
         }
-        
+
         // Load menu items from context
         try {
             const parsed = JSON.parse(ctx);
@@ -98,7 +98,7 @@ export default function StrategyPage() {
         } catch (e) {
             console.error('Failed to parse menu context:', e);
         }
-        
+
         setTimeout(() => setLoading(false), 400);
     }, [router]);
 
@@ -119,7 +119,7 @@ export default function StrategyPage() {
 
         return Object.entries(byCategory).map(([category, catItems], idx) => {
             // Sort items if needed
-            const sortedItems = sortByPrice 
+            const sortedItems = sortByPrice
                 ? [...catItems].sort((a, b) => b.price - a.price)
                 : catItems;
 
@@ -129,10 +129,10 @@ export default function StrategyPage() {
                 position: idx,
                 items: sortedItems.map((item, itemIdx) => {
                     // Apply strategy-specific highlighting
-                    const isHighlighted = 
+                    const isHighlighted =
                         (strategyId === 'golden-triangle' && itemIdx === 0) ||
                         (strategyId === 'scarcity' && itemIdx < 2);
-                    
+
                     const isAnchor = strategyId === 'anchoring' && itemIdx === 0;
                     const isDecoy = strategyId === 'decoy' && itemIdx === 1;
 
@@ -165,7 +165,7 @@ export default function StrategyPage() {
             const ctx = sessionStorage.getItem('menuContext');
             let extractedColors = null;
             let items: MenuItem[] = menuItems;
-            
+
             if (ctx) {
                 try {
                     const parsed = JSON.parse(ctx);

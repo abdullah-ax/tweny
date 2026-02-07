@@ -292,7 +292,7 @@ ${type === 'minimal' ? this.getMinimalStyles() : ''}
             priceStyle === 'hidden-dollar' ? item.price.toFixed(0) : `$${item.price.toFixed(2)}`;
 
         return `
-<article class="${classes}" data-item-id="${item.id}" data-price="${item.price}">
+<article class="${classes}" data-item-id="${item.id}" data-name="${item.name}" data-price="${item.price}">
   ${badgesHTML}
   <div class="item-content">
     <h3 class="item-name">${item.name}</h3>
