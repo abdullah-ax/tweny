@@ -159,6 +159,67 @@ export async function GET(request: Request) {
             .sort((a, b) => b.revenue - a.revenue)
             .slice(0, 10);
 
+        // Calculate items ordered together
+        // Find pairs of items that appear in the same order
+        const orderedTogether: Record<string, {
+            item1: string;
+            item2: string;
+            count: number;
+        }> = {};
+
+        // Group order items by order
+        const orderItemMap: Record<number, string[]> = {};
+        orderItemsData.forEach(item => {
+            const key = item.menuItemId?.toString() || item.name;
+            if (!orderItemMap[item.orderId]) {
+                orderItemMap[item.orderId] = [];
+            }
+            orderItemMap[item.orderId].push(key);
+        });
+
+        // For each order, create pairs of items
+        Object.values(orderItemMap).forEach(items => {
+            // Sort items alphabetically to ensure consistent pair keys
+            const sortedItems = [...items].sort();
+            
+            // Generate all unique pairs
+            for (let i = 0; i < sortedItems.length; i++) {
+                for (let j = i + 1; j < sortedItems.length; j++) {
+                    const pairKey = `${sortedItems[i]}|${sortedItems[j]}`;
+                    if (!orderedTogether[pairKey]) {
+                        orderedTogether[pairKey] = {
+                            item1: sortedItems[i],
+                            item2: sortedItems[j],
+                            count: 0,
+                        };
+                    }
+                    orderedTogether[pairKey].count++;
+                }
+            }
+        });
+
+        // Filter to only include pairs ordered together at least twice
+        // and sort by frequency
+        const frequentPairs = Object.values(orderedTogether)
+            .filter(pair => pair.count >= 2)
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 10);
+
+        // Get item names from the original data
+        const itemNames: Record<string, string> = {};
+        orderItemsData.forEach(item => {
+            const key = item.menuItemId?.toString() || item.name;
+            if (!itemNames[key]) {
+                itemNames[key] = item.name;
+            }
+        });
+
+        const orderedTogetherData = frequentPairs.map(pair => ({
+            item1: itemNames[pair.item1] || pair.item1,
+            item2: itemNames[pair.item2] || pair.item2,
+            count: pair.count,
+        }));
+
         // Get recent orders with their items
         const recentOrdersWithItems = orders.slice(0, 10).map(order => {
             const items = orderItemsData
@@ -225,6 +286,7 @@ export async function GET(request: Request) {
             },
             dailyStats: Object.values(dailyStats),
             topItems,
+            orderedTogether: orderedTogetherData,
             recentOrders: recentOrdersWithItems,
             menuChanges: formattedMenuChanges,
             period: {
@@ -241,6 +303,7 @@ export async function GET(request: Request) {
             summary: { totalOrders: 0, totalRevenue: 0, avgOrderValue: 0, orderGrowth: 0, revenueGrowth: 0 },
             dailyStats: [],
             topItems: [],
+            orderedTogether: [],
             menuChanges: [],
             dataSource: 'error',
         }, { status: 500 });

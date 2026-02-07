@@ -33,6 +33,12 @@ interface TopItem {
     orderCount: number;
 }
 
+interface OrderedTogether {
+    item1: string;
+    item2: string;
+    count: number;
+}
+
 interface OrderAnalytics {
     summary: {
         totalOrders: number;
@@ -40,6 +46,7 @@ interface OrderAnalytics {
         avgOrderValue: number;
     };
     topItems: TopItem[];
+    orderedTogether: OrderedTogether[];
     recentOrders: Order[];
 }
 
@@ -201,6 +208,45 @@ function AnalyticsContent() {
                             ) : (
                                 <div className="text-center py-8 text-gray-400">
                                     No orders yet. Share your QR code to start getting orders!
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Ordered Together */}
+                    <Card>
+                        <CardContent>
+                            <h3 className="text-lg font-semibold text-white mb-4">🔗 Frequently Ordered Together</h3>
+                            {orderAnalytics.orderedTogether && orderAnalytics.orderedTogether.length > 0 ? (
+                                <div className="space-y-3">
+                                    {orderAnalytics.orderedTogether.slice(0, 10).map((pair, idx) => (
+                                        <div key={idx} className="flex items-center gap-4 p-3 bg-gray-800/50 rounded-lg">
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${idx === 0 ? 'bg-purple-500 text-white' :
+                                                idx === 1 ? 'bg-pink-500 text-white' :
+                                                    idx === 2 ? 'bg-indigo-500 text-white' :
+                                                        'bg-gray-700 text-gray-300'
+                                                }`}>
+                                                {idx + 1}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="text-white font-medium">
+                                                    <span className="text-blue-400">{pair.item1}</span>
+                                                    <span className="mx-2 text-gray-400">+</span>
+                                                    <span className="text-blue-400">{pair.item2}</span>
+                                                </div>
+                                                <div className="text-sm text-gray-400">
+                                                    Ordered together {pair.count} time{pair.count !== 1 ? 's' : ''}
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-xl font-bold text-purple-400">{pair.count}</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-gray-400">
+                                    Not enough order data yet. Need at least 2 orders with the same item combination.
                                 </div>
                             )}
                         </CardContent>
