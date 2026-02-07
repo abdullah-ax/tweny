@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import strategyContext from '@/../../data/strategy-context.json';
+import strategyContext from '../../../../../data/strategy-context.json';
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const SITE_URL = process.env.SITE_URL || 'http://localhost:3000';
