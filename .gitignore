@@ -37,10 +37,7 @@ lerna-debug.log*
 # OS
 Thumbs.db
 
-# Data files - too large for git
-data/
-
-# Data folder - too large for git
-data/
+# Data files - too large for git (root data folder only)
+/data/
 node_modules/
 .next/

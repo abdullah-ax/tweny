@@ -1,5 +1,5 @@
 import { ExtractedMenu } from './ocr.service';
-import strategyContext from '../../../data/strategy-context.json';
+import strategyContext from '@/lib/data/strategy-context.json';
 
 export interface MenuStrategy {
     id: string;

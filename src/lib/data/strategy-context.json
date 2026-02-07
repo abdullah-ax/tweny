@@ -1,0 +1,401 @@
+{
+    "version": "1.0",
+    "lastUpdated": "2026-02-07",
+    "objective": "Design a data-driven QR code menu that increases profitability, improves user experience, and guides customer decision-making through strategic item placement, visual hierarchy, and behavioral psychology principles.",
+    "menuEngineering": {
+        "quadrants": {
+            "stars": {
+                "icon": "⭐",
+                "label": "Stars",
+                "description": "High profit + High popularity",
+                "strategy": "Feature prominently at top of categories and in hero sections",
+                "placement": [
+                    "top-of-category",
+                    "hero-section",
+                    "featured-picks"
+                ],
+                "visualTreatment": [
+                    "highlight",
+                    "photo",
+                    "badge"
+                ]
+            },
+            "plowhorses": {
+                "icon": "🧩",
+                "label": "Plowhorses",
+                "description": "Low profit + High popularity",
+                "strategy": "Adjust pricing, reduce portion size, or bundle with high-margin items",
+                "placement": [
+                    "mid-category",
+                    "combo-sections"
+                ],
+                "visualTreatment": [
+                    "standard",
+                    "bundle-suggestion"
+                ]
+            },
+            "puzzles": {
+                "icon": "❓",
+                "label": "Puzzles",
+                "description": "High profit + Low popularity",
+                "strategy": "Improve visibility with better descriptions, photos, and premium positioning",
+                "placement": [
+                    "top-third",
+                    "eye-catching-spots",
+                    "chef-picks"
+                ],
+                "visualTreatment": [
+                    "enhanced-description",
+                    "photo",
+                    "staff-favorite-badge"
+                ]
+            },
+            "dogs": {
+                "icon": "🐶",
+                "label": "Dogs",
+                "description": "Low profit + Low popularity",
+                "strategy": "Consider removing, hiding in 'More' section, or complete redesign",
+                "placement": [
+                    "bottom-of-category",
+                    "hidden-section",
+                    "remove"
+                ],
+                "visualTreatment": [
+                    "minimal",
+                    "no-photo"
+                ]
+            }
+        },
+        "classificationThresholds": {
+            "popularityMetric": "salesVolume",
+            "profitMetric": "marginPercent",
+            "thresholdType": "median"
+        }
+    },
+    "digitalAttention": {
+        "mobileScrollBehavior": {
+            "topThirdAttention": 0.65,
+            "middleThirdAttention": 0.25,
+            "bottomThirdAttention": 0.10,
+            "insight": "In single-column mobile layouts, top third gets 65% of attention"
+        },
+        "multiPanelBehavior": {
+            "topRightFocus": true,
+            "naturalReadingPattern": "F-pattern",
+            "insight": "In multi-panel layouts, top-right areas receive strongest focus"
+        },
+        "categoryListPerformance": {
+            "firstItemBoost": 2.5,
+            "secondItemBoost": 1.8,
+            "thirdItemBoost": 1.3,
+            "insight": "Items at beginning of category lists perform 2.5x better"
+        },
+        "thumbReachZones": {
+            "easy": [
+                "bottom-center",
+                "middle-center"
+            ],
+            "moderate": [
+                "top-center",
+                "bottom-sides"
+            ],
+            "difficult": [
+                "top-corners"
+            ],
+            "cta_placement": "easy"
+        }
+    },
+    "layoutPriorityRules": [
+        "Place Stars at top of each category",
+        "Insert Puzzles in high-visibility spots with enhanced descriptions",
+        "Avoid burying high-margin items mid-scroll",
+        "Use visual anchors (badges, highlights, photos) sparingly - max 30% of items",
+        "Limit items per screen to 7 without visual break",
+        "Keep featured section to 3-5 items maximum"
+    ],
+    "qrMenuStructure": {
+        "homepage": {
+            "sections": [
+                {
+                    "name": "Featured/Chef's Picks",
+                    "itemCount": "3-5",
+                    "source": "stars"
+                },
+                {
+                    "name": "Seasonal/Promotional Banner",
+                    "type": "banner"
+                },
+                {
+                    "name": "Quick Category Buttons",
+                    "type": "navigation"
+                }
+            ]
+        },
+        "categoryLayout": {
+            "itemOrder": [
+                "star",
+                "puzzle",
+                "plowhorse",
+                "dog"
+            ],
+            "visualHierarchy": [
+                "highlighted-first",
+                "standard-middle",
+                "minimal-bottom"
+            ],
+            "overflow": "collapsible 'More' section for dogs"
+        }
+    },
+    "behavioralPsychology": {
+        "decoyPricing": {
+            "description": "Introduce a strategically priced decoy to nudge customers toward target items",
+            "implementation": "Price medium option close to large to make large seem like better value",
+            "expectedImpact": "+25% selection of target items"
+        },
+        "priceAnchoring": {
+            "description": "Use a high-priced anchor item to make other items seem more reasonable",
+            "implementation": "Place premium item first in category to set high anchor",
+            "expectedImpact": "+10-15% average order value"
+        },
+        "currencySymbolRemoval": {
+            "description": "Remove currency symbols to reduce price sensitivity",
+            "implementation": "Display '163' instead of 'EGP 163'",
+            "expectedImpact": "Reduced price focus, increased comfort ordering"
+        },
+        "sensoryLanguage": {
+            "description": "Use descriptive sensory language in item descriptions",
+            "examples": [
+                "crispy",
+                "golden",
+                "tender",
+                "aromatic",
+                "house-made",
+                "slow-roasted"
+            ],
+            "expectedImpact": "+27% perceived value"
+        },
+        "socialProof": {
+            "badges": [
+                "Most Ordered",
+                "Staff Favorite",
+                "Customer Pick",
+                "Trending"
+            ],
+            "implementation": "Subtle badges on 20-30% of items, prioritizing puzzles",
+            "expectedImpact": "+30% conversion on badged items"
+        },
+        "scarcity": {
+            "badges": [
+                "Limited Time",
+                "Only X Left",
+                "Seasonal Special",
+                "Chef's Special"
+            ],
+            "implementation": "Use sparingly on high-margin items to create urgency",
+            "expectedImpact": "+20% immediate ordering"
+        }
+    },
+    "strategies": {
+        "goldenTriangle": {
+            "id": "golden-triangle",
+            "name": "Golden Triangle",
+            "description": "Places high-profit items in the visual hotspots where eyes naturally go first",
+            "psychology": "Eye-tracking studies show diners look at the middle first, then top-right, then top-left. This triangle captures 70% of attention.",
+            "expectedOutcome": "+15-20% profit on featured items",
+            "layoutType": "magazine",
+            "columns": 2,
+            "highlightPattern": [
+                "center-hero",
+                "top-right",
+                "top-left"
+            ],
+            "idealFor": [
+                "Restaurants with strong visual menu items",
+                "Photo-heavy menus",
+                "Mid-to-upscale dining"
+            ],
+            "reasoning": [
+                "Your Stars will be placed in the visual hotspots (center, top-right, top-left)",
+                "Puzzles get secondary premium positions with enhanced descriptions",
+                "Magazine-style layout naturally guides the eye in the golden triangle pattern",
+                "Two-column layout maximizes attention distribution"
+            ]
+        },
+        "anchoring": {
+            "id": "anchoring",
+            "name": "Price Anchoring",
+            "description": "Uses a high-priced anchor item to make other items seem more reasonable",
+            "psychology": "When we see a $75 steak first, a $35 dish feels like a bargain. This cognitive bias affects perception of value.",
+            "expectedOutcome": "+10-15% average order value",
+            "layoutType": "list",
+            "columns": 1,
+            "highlightPattern": [
+                "premium-first",
+                "target-second",
+                "value-third"
+            ],
+            "idealFor": [
+                "Upscale restaurants",
+                "Menus with wide price ranges",
+                "Places wanting to increase AOV"
+            ],
+            "reasoning": [
+                "Highest-priced item appears first in each category as the anchor",
+                "Mid-priced target items (your real goals) appear immediately after",
+                "Single-column layout ensures every item is seen in intended order",
+                "Elegant typography reinforces premium perception"
+            ]
+        },
+        "decoyEffect": {
+            "id": "decoy",
+            "name": "Decoy Pricing",
+            "description": "Introduces a strategically priced decoy to nudge customers toward target items",
+            "psychology": "A medium option priced close to large makes large seem like better value. The decoy exists to be rejected.",
+            "expectedOutcome": "+25% selection of target items",
+            "layoutType": "grid",
+            "columns": 3,
+            "highlightPattern": [
+                "decoy-middle",
+                "target-right",
+                "entry-left"
+            ],
+            "idealFor": [
+                "Fast casual",
+                "Restaurants with tiered pricing",
+                "Combo-heavy menus"
+            ],
+            "reasoning": [
+                "Three-column grid naturally creates comparison sets",
+                "Decoy items are priced to make target items look like better value",
+                "Visual badges guide customers to 'Best Choice' (your target)",
+                "Grid layout enables side-by-side price comparison"
+            ]
+        },
+        "scarcityUrgency": {
+            "id": "scarcity",
+            "name": "Scarcity & Social Proof",
+            "description": "Uses limited availability and popularity badges to drive decisions",
+            "psychology": "'Only 3 left' and 'Most Popular' badges trigger fear of missing out and social validation.",
+            "expectedOutcome": "+30% conversion on featured items",
+            "layoutType": "grid",
+            "columns": 2,
+            "highlightPattern": [
+                "popular-badges",
+                "limited-badges",
+                "trending-badges"
+            ],
+            "idealFor": [
+                "Trendy restaurants",
+                "Limited menu concepts",
+                "Social media-savvy audience"
+            ],
+            "reasoning": [
+                "Strategic badges create urgency and social validation",
+                "Popular items get 'Most Ordered' badges for social proof",
+                "High-margin items get scarcity badges to drive immediate decisions",
+                "Two-column grid with badges maximizes visual impact"
+            ]
+        }
+    },
+    "colorPaletteGuidelines": {
+        "preserveExtracted": true,
+        "fallbackSchemes": {
+            "warm": {
+                "primary": "#1a1a2e",
+                "secondary": "#16213e",
+                "accent": "#e94560",
+                "background": "#0f0f1a"
+            },
+            "elegant": {
+                "primary": "#2d2d2d",
+                "secondary": "#3d3d3d",
+                "accent": "#c9a227",
+                "background": "#1a1a1a"
+            },
+            "modern": {
+                "primary": "#1e3a5f",
+                "secondary": "#2e5077",
+                "accent": "#ff6b6b",
+                "background": "#0d1b2a"
+            },
+            "vibrant": {
+                "primary": "#2d132c",
+                "secondary": "#801336",
+                "accent": "#ee4540",
+                "background": "#1a0a1a"
+            }
+        },
+        "accessibilityRules": {
+            "minContrastRatio": 4.5,
+            "highlightContrast": 7.0
+        }
+    },
+    "analytics": {
+        "trackingMetrics": [
+            "click-through-rate-per-item",
+            "scroll-depth",
+            "time-spent-per-category",
+            "add-to-cart-conversion",
+            "item-pair-frequency"
+        ],
+        "dataUsage": [
+            "Reclassify Stars/Puzzles dynamically based on real data",
+            "Test price elasticity through A/B experiments",
+            "Run A/B tests on layout order",
+            "Optimize badge placement based on conversion data"
+        ]
+    },
+    "kpis": {
+        "primary": [
+            {
+                "name": "Average Check Size",
+                "target": "+12%",
+                "measurement": "revenue/orders"
+            },
+            {
+                "name": "High-Margin Item Sales",
+                "target": "+20%",
+                "measurement": "puzzle-and-star-sales"
+            },
+            {
+                "name": "Low-Margin Item Sales",
+                "target": "-15%",
+                "measurement": "dog-sales-reduction"
+            }
+        ],
+        "secondary": [
+            {
+                "name": "Category Conversion Rate",
+                "target": "+10%",
+                "measurement": "views-to-orders"
+            },
+            {
+                "name": "Scroll Abandonment Rate",
+                "target": "-25%",
+                "measurement": "scroll-depth-analysis"
+            },
+            {
+                "name": "Time to First Order",
+                "target": "-20%",
+                "measurement": "session-duration"
+            }
+        ]
+    },
+    "uxSafeguards": [
+        "Fast loading under 3 seconds",
+        "Minimal popups - max 1 per session",
+        "Easy back navigation",
+        "Clear CTA buttons (Add, Customize)",
+        "QR fallback if connection drops",
+        "Maximum 7 items visible without scroll break"
+    ],
+    "seasonalModes": {
+        "available": [
+            "ramadan",
+            "valentine",
+            "summer",
+            "limited-time"
+        ],
+        "rule": "Seasonal items temporarily replace lowest-performing items in premium positions"
+    }
+}
