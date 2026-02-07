@@ -5,6 +5,41 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, Button } from '@/components/ui';
 import { LayoutSection, LayoutItem } from '@/lib/services/strategy.service';
 
+// Clean SVG Icons
+function EyeIcon({ className }: { className?: string }) {
+    return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+    );
+}
+
+function CurrencyIcon({ className }: { className?: string }) {
+    return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+    );
+}
+
+function TargetIcon({ className }: { className?: string }) {
+    return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
+        </svg>
+    );
+}
+
+function FireIcon({ className }: { className?: string }) {
+    return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z" />
+        </svg>
+    );
+}
+
 /**
  * Strategy options based on strategy-context.json menu engineering best practices
  * Each strategy uses proven psychological principles to optimize menu performance
@@ -12,7 +47,7 @@ import { LayoutSection, LayoutItem } from '@/lib/services/strategy.service';
 interface Strategy {
     id: string;
     name: string;
-    icon: string;
+    icon: React.ComponentType<{ className?: string }>;
     description: string;
     psychology: string;
     expectedOutcome: string;
@@ -33,7 +68,7 @@ const strategies: Strategy[] = [
     {
         id: 'golden-triangle',
         name: 'Golden Triangle',
-        icon: '👁️',
+        icon: EyeIcon,
         description: 'Places high-profit items where eyes naturally look first',
         psychology: 'Eyes scan middle → top-right → top-left. This captures 70% of attention.',
         expectedOutcome: '+15-20% profit on featured items',
@@ -44,7 +79,7 @@ const strategies: Strategy[] = [
     {
         id: 'anchoring',
         name: 'Price Anchoring',
-        icon: '💰',
+        icon: CurrencyIcon,
         description: 'High-priced anchor makes other items seem like a deal',
         psychology: 'Seeing a $75 steak first makes a $35 dish feel like a bargain.',
         expectedOutcome: '+10-15% average order value',
@@ -55,7 +90,7 @@ const strategies: Strategy[] = [
     {
         id: 'decoy',
         name: 'Decoy Pricing',
-        icon: '🎯',
+        icon: TargetIcon,
         description: 'Strategic pricing nudges customers to target items',
         psychology: 'Medium priced close to large makes large look like better value.',
         expectedOutcome: '+25% selection of target items',
@@ -66,7 +101,7 @@ const strategies: Strategy[] = [
     {
         id: 'scarcity',
         name: 'Social Proof',
-        icon: '🔥',
+        icon: FireIcon,
         description: 'Popular and limited badges drive decisions',
         psychology: '"Most Popular" and "Limited" badges trigger FOMO and validation.',
         expectedOutcome: '+30% conversion on featured items',
@@ -247,29 +282,36 @@ export default function StrategyPage() {
 
             {/* Strategy Options */}
             <div className="grid grid-cols-2 gap-4 mb-6">
-                {strategies.map((strategy) => (
-                    <Card
-                        key={strategy.id}
-                        onClick={() => setSelected(strategy.id)}
-                        className={`cursor-pointer transition-all ${selected === strategy.id
-                            ? 'ring-2 ring-orange-500 bg-orange-500/10'
-                            : 'bg-gray-900 hover:bg-gray-800'
-                            }`}
-                    >
-                        <CardContent className="p-5">
-                            <div className="flex items-start gap-3">
-                                <div className="text-3xl">{strategy.icon}</div>
-                                <div className="flex-1">
-                                    <h3 className="font-semibold text-white">{strategy.name}</h3>
-                                    <p className="text-sm text-gray-400 mt-1">{strategy.description}</p>
-                                    <div className="mt-2 inline-block px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded">
-                                        {strategy.expectedOutcome}
+                {strategies.map((strategy) => {
+                    const IconComponent = strategy.icon;
+                    return (
+                        <Card
+                            key={strategy.id}
+                            onClick={() => setSelected(strategy.id)}
+                            className={`cursor-pointer transition-all ${selected === strategy.id
+                                ? 'ring-2 ring-orange-500 bg-orange-500/10'
+                                : 'bg-gray-900 hover:bg-gray-800'
+                                }`}
+                        >
+                            <CardContent className="p-5">
+                                <div className="flex items-start gap-3">
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                                        selected === strategy.id ? 'bg-orange-500/20 text-orange-400' : 'bg-gray-800 text-gray-400'
+                                    }`}>
+                                        <IconComponent className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="font-semibold text-white">{strategy.name}</h3>
+                                        <p className="text-sm text-gray-400 mt-1">{strategy.description}</p>
+                                        <div className="mt-2 inline-block px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded">
+                                            {strategy.expectedOutcome}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
+                            </CardContent>
+                        </Card>
+                    );
+                })}
             </div>
 
             {/* Selected Strategy Details */}
@@ -277,7 +319,7 @@ export default function StrategyPage() {
                 <Card className="mb-6 bg-gray-800/50 border-orange-500/30">
                     <CardContent className="p-5">
                         <h3 className="font-semibold text-white mb-2">
-                            💡 Why {selectedStrategy.name} Works
+                            Why {selectedStrategy.name} Works
                         </h3>
                         <p className="text-gray-300 text-sm mb-3">{selectedStrategy.psychology}</p>
                         <div className="flex flex-wrap gap-2">

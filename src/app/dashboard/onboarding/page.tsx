@@ -39,14 +39,12 @@ export default function OnboardingPage() {
     const [extractedMenu, setExtractedMenu] = useState<CleanedMenu | ExtractedMenu | null>(null);
     const [colorPalette, setColorPalette] = useState<ColorPalette | null>(null);
     const [extractedImages, setExtractedImages] = useState<ExtractedImage[]>([]);
-    const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['eng']);
     const [error, setError] = useState<string | null>(null);
 
     // Restaurant info
     const [restaurantName, setRestaurantName] = useState('');
     const [cuisineType, setCuisineType] = useState('');
 
-    const languages = OCRService.getSupportedLanguages();
     const pdfCanvasRef = useRef<HTMLCanvasElement[]>([]);
 
     /**
@@ -122,7 +120,7 @@ export default function OnboardingPage() {
 
             const ocrResult = await OCRService.extractFromFile(
                 menuState.file,
-                selectedLanguages,
+                ['eng'],
                 ocrProgress
             );
 
@@ -318,12 +316,6 @@ export default function OnboardingPage() {
         router.push('/dashboard/strategy');
     };
 
-    const toggleLanguage = (code: string) => {
-        setSelectedLanguages(prev =>
-            prev.includes(code) ? prev.filter(l => l !== code) : [...prev, code]
-        );
-    };
-
     const totalCSVRows = csvParseResults.reduce((sum, r) => sum + r.summary.validRows, 0);
     const itemCount = extractedMenu?.items?.length ?? 0;
     const categoryCount = extractedMenu?.categories?.length ?? 0;
@@ -433,27 +425,6 @@ export default function OnboardingPage() {
                                 className="hidden"
                             />
                         </label>
-
-                        {/* Language Selection */}
-                        <div className="mt-4">
-                            <label className="block text-sm text-gray-400 mb-2">Menu Languages</label>
-                            <div className="flex flex-wrap gap-2">
-                                {languages.slice(0, 6).map((lang) => (
-                                    <button
-                                        key={lang.code}
-                                        onClick={() => toggleLanguage(lang.code)}
-                                        className={`
-                                            px-2 py-1 rounded-full text-xs transition-colors
-                                            ${selectedLanguages.includes(lang.code)
-                                                ? 'bg-orange-500 text-white'
-                                                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}
-                                        `}
-                                    >
-                                        {lang.name}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
                     </CardContent>
                 </Card>
 

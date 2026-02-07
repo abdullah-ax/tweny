@@ -85,7 +85,10 @@ function AnalyticsContent() {
 
     const fetchOrderAnalytics = async () => {
         try {
-            const res = await fetch(`/api/analytics/orders?restaurantId=${selectedRestaurant}&period=${period}`);
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/analytics/orders?restaurantId=${selectedRestaurant}&period=${period}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
             if (res.ok) {
                 const data = await res.json();
                 setOrderAnalytics(data);

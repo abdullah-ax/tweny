@@ -1,17 +1,17 @@
 import { MenuStrategy, LayoutSection, LayoutItem } from './strategy.service';
 
 export interface BuiltLayout {
-    id: string;
-    strategyId: string;
-    strategyName: string;
-    html: string;
-    css: string;
-    sections: LayoutSection[];
-    metadata: {
-        createdAt: string;
-        version: number;
-        experimentId?: string;
-    };
+  id: string;
+  strategyId: string;
+  strategyName: string;
+  html: string;
+  css: string;
+  sections: LayoutSection[];
+  metadata: {
+    createdAt: string;
+    version: number;
+    experimentId?: string;
+  };
 }
 
 /**
@@ -19,40 +19,40 @@ export interface BuiltLayout {
  * Takes a selected strategy and builds a deployable menu layout
  */
 export class LayoutBuilderAgent {
-    /**
-     * Build a complete layout from a strategy
-     */
-    static async buildLayout(strategy: MenuStrategy, experimentId?: string): Promise<BuiltLayout> {
-        const { layout } = strategy;
+  /**
+   * Build a complete layout from a strategy
+   */
+  static async buildLayout(strategy: MenuStrategy, experimentId?: string): Promise<BuiltLayout> {
+    const { layout } = strategy;
 
-        // Generate CSS based on strategy
-        const css = this.generateCSS(layout);
+    // Generate CSS based on strategy
+    const css = this.generateCSS(layout);
 
-        // Generate HTML structure
-        const html = this.generateHTML(layout, strategy.name);
+    // Generate HTML structure
+    const html = this.generateHTML(layout, strategy.name);
 
-        return {
-            id: `layout-${Date.now()}`,
-            strategyId: strategy.id,
-            strategyName: strategy.name,
-            html,
-            css,
-            sections: layout.sections,
-            metadata: {
-                createdAt: new Date().toISOString(),
-                version: 1,
-                experimentId,
-            },
-        };
-    }
+    return {
+      id: `layout-${Date.now()}`,
+      strategyId: strategy.id,
+      strategyName: strategy.name,
+      html,
+      css,
+      sections: layout.sections,
+      metadata: {
+        createdAt: new Date().toISOString(),
+        version: 1,
+        experimentId,
+      },
+    };
+  }
 
-    /**
-     * Generate CSS for the layout
-     */
-    private static generateCSS(layout: MenuStrategy['layout']): string {
-        const { colorScheme, typography, type, columns } = layout;
+  /**
+   * Generate CSS for the layout
+   */
+  private static generateCSS(layout: MenuStrategy['layout']): string {
+    const { colorScheme, typography, type, columns } = layout;
 
-        return `
+    return `
 :root {
   --primary: ${colorScheme.primary};
   --secondary: ${colorScheme.secondary};
@@ -178,13 +178,13 @@ ${type === 'magazine' ? this.getMagazineStyles() : ''}
 ${type === 'list' ? this.getListStyles() : ''}
 ${type === 'minimal' ? this.getMinimalStyles() : ''}
 `;
-    }
+  }
 
-    /**
-     * Magazine layout specific styles
-     */
-    private static getMagazineStyles(): string {
-        return `
+  /**
+   * Magazine layout specific styles
+   */
+  private static getMagazineStyles(): string {
+    return `
 .menu-item:first-child {
   grid-column: span 2;
 }
@@ -195,13 +195,13 @@ ${type === 'minimal' ? this.getMinimalStyles() : ''}
   }
 }
 `;
-    }
+  }
 
-    /**
-     * List layout specific styles
-     */
-    private static getListStyles(): string {
-        return `
+  /**
+   * List layout specific styles
+   */
+  private static getListStyles(): string {
+    return `
 .menu-item {
   display: flex;
   justify-content: space-between;
@@ -218,13 +218,13 @@ ${type === 'minimal' ? this.getMinimalStyles() : ''}
   margin-left: 1rem;
 }
 `;
-    }
+  }
 
-    /**
-     * Minimal layout specific styles
-     */
-    private static getMinimalStyles(): string {
-        return `
+  /**
+   * Minimal layout specific styles
+   */
+  private static getMinimalStyles(): string {
+    return `
 .menu-item {
   background: transparent;
   border-bottom: 1px solid var(--secondary);
@@ -237,15 +237,15 @@ ${type === 'minimal' ? this.getMinimalStyles() : ''}
   box-shadow: none;
 }
 `;
-    }
+  }
 
-    /**
-     * Generate HTML structure
-     */
-    private static generateHTML(layout: MenuStrategy['layout'], strategyName: string): string {
-        const sectionsHTML = layout.sections
-            .map(
-                (section) => `
+  /**
+   * Generate HTML structure
+   */
+  private static generateHTML(layout: MenuStrategy['layout'], strategyName: string): string {
+    const sectionsHTML = layout.sections
+      .map(
+        (section) => `
 <section class="menu-section" data-section-id="${section.id}">
   <h2 class="section-title">${section.name}</h2>
   <div class="items-grid">
@@ -253,10 +253,10 @@ ${type === 'minimal' ? this.getMinimalStyles() : ''}
   </div>
 </section>
 `
-            )
-            .join('\n');
+      )
+      .join('\n');
 
-        return `
+    return `
 <div class="menu-container" data-strategy="${strategyName.toLowerCase().replace(/\s+/g, '-')}">
   <header class="menu-header">
     <h1>Our Menu</h1>
@@ -265,33 +265,33 @@ ${type === 'minimal' ? this.getMinimalStyles() : ''}
   ${sectionsHTML}
 </div>
 `;
-    }
+  }
 
-    /**
-     * Generate HTML for a single item
-     */
-    private static generateItemHTML(
-        item: LayoutItem,
-        priceStyle: string
-    ): string {
-        const classes = [
-            'menu-item',
-            item.isHighlighted ? 'highlighted' : '',
-            item.isAnchor ? 'anchor' : '',
-            item.isDecoy ? 'decoy' : '',
-        ]
-            .filter(Boolean)
-            .join(' ');
+  /**
+   * Generate HTML for a single item
+   */
+  private static generateItemHTML(
+    item: LayoutItem,
+    priceStyle: string
+  ): string {
+    const classes = [
+      'menu-item',
+      item.isHighlighted ? 'highlighted' : '',
+      item.isAnchor ? 'anchor' : '',
+      item.isDecoy ? 'decoy' : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
 
-        const badgesHTML =
-            item.badges.length > 0
-                ? `<div class="item-badges">${item.badges.map((b) => `<span class="badge">${b}</span>`).join('')}</div>`
-                : '';
+    const badgesHTML =
+      item.badges.length > 0
+        ? `<div class="item-badges">${item.badges.map((b) => `<span class="badge">${b}</span>`).join('')}</div>`
+        : '';
 
-        const priceDisplay =
-            priceStyle === 'hidden-dollar' ? item.price.toFixed(0) : `$${item.price.toFixed(2)}`;
+    const priceDisplay =
+      priceStyle === 'hidden-dollar' ? item.price.toFixed(0) : `$${item.price.toFixed(2)}`;
 
-        return `
+    return `
 <article class="${classes}" data-item-id="${item.id}" data-name="${item.name}" data-price="${item.price}">
   ${badgesHTML}
   <div class="item-content">
@@ -301,13 +301,13 @@ ${type === 'minimal' ? this.getMinimalStyles() : ''}
   <span class="item-price ${priceStyle === 'hidden-dollar' ? 'hidden-dollar' : ''}">${priceDisplay}</span>
 </article>
 `;
-    }
+  }
 
-    /**
-     * Generate React component code for the layout
-     */
-    static generateReactComponent(strategy: MenuStrategy): string {
-        return `
+  /**
+   * Generate React component code for the layout
+   */
+  static generateReactComponent(strategy: MenuStrategy): string {
+    return `
 'use client';
 
 import { useState } from 'react';
@@ -366,5 +366,5 @@ function MenuItemCard({ item, onClick, onAddToCart }) {
   );
 }
 `;
-    }
+  }
 }
