@@ -50,11 +50,12 @@ interface OrderAnalytics {
     recentOrders: Order[];
 }
 
-interface QuadrantSummary {
-    stars: number;
-    cashCows: number;
-    questionMarks: number;
-    dogs: number;
+interface CategorySummary {
+    appetizers: number;
+    mainCourses: number;
+    desserts: number;
+    drinks: number;
+    other: number;
     totalItems: number;
 }
 
@@ -75,15 +76,16 @@ interface AnalyticsItem {
 }
 
 // SVG Pie Chart Component
-function PieChart({ data }: { data: QuadrantSummary }) {
-    const total = data.stars + data.cashCows + data.questionMarks + data.dogs;
+function PieChart({ data }: { data: CategorySummary }) {
+    const total = data.appetizers + data.mainCourses + data.desserts + data.drinks + data.other;
     if (total === 0) return null;
 
     const segments = [
-        { label: 'Stars', value: data.stars, color: '#facc15' },  // Yellow
-        { label: 'Cash Cows', value: data.cashCows, color: '#22c55e' },  // Green
-        { label: 'Puzzles', value: data.questionMarks, color: '#3b82f6' },  // Blue
-        { label: 'Dogs', value: data.dogs, color: '#ef4444' },  // Red
+        { label: 'Appetizers', value: data.appetizers, color: '#f97316' },  // Orange
+        { label: 'Main Courses', value: data.mainCourses, color: '#22c55e' },  // Green
+        { label: 'Desserts', value: data.desserts, color: '#ec4899' },  // Pink
+        { label: 'Drinks', value: data.drinks, color: '#3b82f6' },  // Blue
+        { label: 'Other', value: data.other, color: '#6b7280' },  // Gray
     ].filter(s => s.value > 0);
 
     let currentAngle = 0;
@@ -167,7 +169,7 @@ function AnalyticsContent() {
     const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
     const [selectedRestaurant, setSelectedRestaurant] = useState<string>(restaurantId || '');
     const [orderAnalytics, setOrderAnalytics] = useState<OrderAnalytics | null>(null);
-    const [quadrantData, setQuadrantData] = useState<QuadrantSummary | null>(null);
+    const [categoryData, setCategoryData] = useState<CategorySummary | null>(null);
     const [analyticsItems, setAnalyticsItems] = useState<AnalyticsItem[]>([]);
     const [period, setPeriod] = useState<'7d' | '14d' | '30d'>('30d');
     const [loading, setLoading] = useState(true);
@@ -186,7 +188,7 @@ function AnalyticsContent() {
     useEffect(() => {
         if (selectedRestaurant) {
             fetchOrderAnalytics();
-            fetchQuadrantData();
+            fetchCategoryData();
         }
     }, [selectedRestaurant, period]);
 
@@ -225,30 +227,62 @@ function AnalyticsContent() {
         }
     };
 
-    const fetchQuadrantData = async () => {
+    const fetchCategoryData = async () => {
         try {
             const token = localStorage.getItem('token');
-            const periodDays = period === '7d' ? 7 : period === '14d' ? 14 : 30;
-            const res = await fetch(`/api/restaurants/${selectedRestaurant}/analytics?period=${periodDays}`, {
+            // Fetch menu sections to categorize items
+            const sectionsRes = await fetch(`/api/restaurants/${selectedRestaurant}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            if (res.ok) {
-                const data = await res.json();
-                if (data.summary) {
-                    setQuadrantData({
-                        stars: data.summary.stars || 0,
-                        cashCows: data.summary.cashCows || 0,
-                        questionMarks: data.summary.questionMarks || 0,
-                        dogs: data.summary.dogs || 0,
-                        totalItems: data.summary.totalItems || 0,
-                    });
-                }
-                if (data.items) {
-                    setAnalyticsItems(data.items);
+            
+            if (sectionsRes.ok) {
+                const data = await sectionsRes.json();
+                const sections = data.sections || [];
+                
+                // Count items by category
+                const counts: CategorySummary = {
+                    appetizers: 0,
+                    mainCourses: 0,
+                    desserts: 0,
+                    drinks: 0,
+                    other: 0,
+                    totalItems: 0,
+                };
+                
+                sections.forEach((section: { title: string; items: unknown[] }) => {
+                    const title = section.title.toLowerCase();
+                    const itemCount = section.items?.length || 0;
+                    counts.totalItems += itemCount;
+                    
+                    if (title.includes('appetizer') || title.includes('starter') || title.includes('small')) {
+                        counts.appetizers += itemCount;
+                    } else if (title.includes('main') || title.includes('entree') || title.includes('course')) {
+                        counts.mainCourses += itemCount;
+                    } else if (title.includes('dessert') || title.includes('sweet')) {
+                        counts.desserts += itemCount;
+                    } else if (title.includes('drink') || title.includes('beverage') || title.includes('cocktail') || title.includes('wine') || title.includes('beer')) {
+                        counts.drinks += itemCount;
+                    } else {
+                        counts.other += itemCount;
+                    }
+                });
+                
+                setCategoryData(counts);
+            }
+            
+            // Also fetch analytics items for chat context
+            const periodDays = period === '7d' ? 7 : period === '14d' ? 14 : 30;
+            const analyticsRes = await fetch(`/api/restaurants/${selectedRestaurant}/analytics?period=${periodDays}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (analyticsRes.ok) {
+                const analyticsData = await analyticsRes.json();
+                if (analyticsData.items) {
+                    setAnalyticsItems(analyticsData.items);
                 }
             }
         } catch (error) {
-            console.error('Failed to fetch quadrant data:', error);
+            console.error('Failed to fetch category data:', error);
         }
     };
 
@@ -277,14 +311,13 @@ function AnalyticsContent() {
             // Build context for AI with real analytics data
             const analyticsContext = {
                 summary: orderAnalytics?.summary,
-                quadrants: quadrantData,
+                categories: categoryData,
                 topItems: orderAnalytics?.topItems?.slice(0, 5),
                 itemDetails: analyticsItems.slice(0, 20).map(item => ({
                     name: item.itemName,
                     revenue: item.totalRevenue,
                     quantity: item.totalQuantitySold,
                     margin: item.grossMargin,
-                    category: item.bcgQuadrant,
                 })),
                 period,
             };
@@ -294,7 +327,7 @@ function AnalyticsContent() {
 ANALYTICS DATA:
 ${JSON.stringify(analyticsContext, null, 2)}
 
-Answer the user's question based on this data. Be specific and reference actual items/numbers when possible. If asked about trends, profitability, or recommendations, use the quadrant classifications (star=high profit+popular, cash_cow=popular+lower margin, question_mark/puzzle=high margin+unpopular, dog=low both).
+Answer the user's question based on this data. Be specific and reference actual items/numbers when possible. The categories show menu composition: appetizers, main courses, desserts, drinks.
 
 User question: ${chatInput}`;
 
@@ -409,36 +442,36 @@ User question: ${chatInput}`;
                         </Card>
                     </div>
 
-                    {/* Menu Performance Pie Chart */}
-                    {quadrantData && (quadrantData.stars > 0 || quadrantData.cashCows > 0 || quadrantData.questionMarks > 0 || quadrantData.dogs > 0) && (
+                    {/* Menu Items by Category Pie Chart */}
+                    {categoryData && categoryData.totalItems > 0 && (
                         <Card>
                             <CardContent>
-                                <h3 className="text-lg font-semibold text-white mb-4">Menu Performance by Category</h3>
+                                <h3 className="text-lg font-semibold text-white mb-4">Menu Items by Category</h3>
                                 <p className="text-gray-400 text-sm mb-6">
-                                    Items are classified based on popularity and profitability
+                                    Distribution of your menu items across categories
                                 </p>
-                                <PieChart data={quadrantData} />
+                                <PieChart data={categoryData} />
                                 <div className="mt-6 pt-4 border-t border-gray-800">
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
                                         <div>
-                                            <div className="text-yellow-400 font-bold text-xl">{quadrantData.stars}</div>
-                                            <div className="text-gray-400 text-sm">Stars</div>
-                                            <div className="text-gray-500 text-xs">High popularity & profit</div>
+                                            <div className="text-orange-400 font-bold text-xl">{categoryData.appetizers}</div>
+                                            <div className="text-gray-400 text-sm">Appetizers</div>
                                         </div>
                                         <div>
-                                            <div className="text-green-400 font-bold text-xl">{quadrantData.cashCows}</div>
-                                            <div className="text-gray-400 text-sm">Cash Cows</div>
-                                            <div className="text-gray-500 text-xs">High popularity, lower margin</div>
+                                            <div className="text-green-400 font-bold text-xl">{categoryData.mainCourses}</div>
+                                            <div className="text-gray-400 text-sm">Main Courses</div>
                                         </div>
                                         <div>
-                                            <div className="text-blue-400 font-bold text-xl">{quadrantData.questionMarks}</div>
-                                            <div className="text-gray-400 text-sm">Puzzles</div>
-                                            <div className="text-gray-500 text-xs">Low popularity, high margin</div>
+                                            <div className="text-pink-400 font-bold text-xl">{categoryData.desserts}</div>
+                                            <div className="text-gray-400 text-sm">Desserts</div>
                                         </div>
                                         <div>
-                                            <div className="text-red-400 font-bold text-xl">{quadrantData.dogs}</div>
-                                            <div className="text-gray-400 text-sm">Dogs</div>
-                                            <div className="text-gray-500 text-xs">Low popularity & profit</div>
+                                            <div className="text-blue-400 font-bold text-xl">{categoryData.drinks}</div>
+                                            <div className="text-gray-400 text-sm">Drinks</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-gray-400 font-bold text-xl">{categoryData.other}</div>
+                                            <div className="text-gray-400 text-sm">Other</div>
                                         </div>
                                     </div>
                                 </div>
