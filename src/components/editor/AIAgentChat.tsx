@@ -23,7 +23,7 @@ export function AIAgentChat({ onStatusChange }: Props) {
                 body: JSON.stringify({ message, restaurantId: 1 }),
             });
             const data = await response.json();
-            const next = data?.response ?? "Agent response placeholder";
+            const next = data?.response ?? "Unable to generate response. Please try again.";
             setHistory((prev) => [...prev, `You: ${message}`, `AI: ${next}`]);
         } catch {
             setHistory((prev) => [...prev, "AI: Unable to reach agent service."]);

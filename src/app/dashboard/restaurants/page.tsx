@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button, Card, CardContent, Input, Modal, Badge } from '@/components/ui';
 
 interface Restaurant {
@@ -11,6 +12,7 @@ interface Restaurant {
 }
 
 export default function RestaurantsPage() {
+    const router = useRouter();
     const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,12 +30,23 @@ export default function RestaurantsPage() {
             const res = await fetch('/api/restaurants', {
                 headers: { Authorization: `Bearer ${token}` },
             });
+            if (res.status === 401) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                router.push('/login');
+                return;
+            }
+
             if (res.ok) {
                 const data = await res.json();
                 setRestaurants(data.restaurants || []);
+            } else {
+                const data = await res.json();
+                setError(data.error || 'Failed to load restaurants');
             }
         } catch (error) {
             console.error('Failed to fetch restaurants:', error);
+            setError('Failed to load restaurants');
         } finally {
             setLoading(false);
         }
@@ -59,6 +72,13 @@ export default function RestaurantsPage() {
                 },
                 body: JSON.stringify(formData),
             });
+
+            if (res.status === 401) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                router.push('/login');
+                return;
+            }
 
             if (res.ok) {
                 const data = await res.json();

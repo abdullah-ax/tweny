@@ -83,6 +83,7 @@ export const menuItems = pgTable('menu_items', {
     imageUrl: text('image_url'),
     rating: decimal('rating', { precision: 3, scale: 1 }),
     votes: integer('votes').default(0),
+    soldCount: integer('sold_count').default(0), // Sales count from CSV/orders
     index: integer('index').default(0),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -156,6 +157,11 @@ export const layouts = pgTable('layouts', {
     name: varchar('name', { length: 255 }).notNull(),
     description: text('description'),
     strategy: varchar('strategy', { length: 50 }), // 'star_focused', 'cash_cow_optimizer', etc.
+    version: integer('version').default(1),
+    status: varchar('status', { length: 20 }).default('draft'), // 'draft', 'published', 'archived'
+    source: varchar('source', { length: 50 }).default('manual'), // 'manual', 'agent'
+    publishedAt: timestamp('published_at'),
+    appliedByUserId: integer('applied_by_user_id').references(() => users.id),
     config: json('config').$type<{
         sections: Array<{
             id: string;
@@ -179,18 +185,205 @@ export const layouts = pgTable('layouts', {
 }));
 
 // ============================================
+// Section Approvals (per-layout, per-section)
+// ============================================
+export const sectionApprovals = pgTable('section_approvals', {
+    id: serial('id').primaryKey(),
+    layoutId: integer('layout_id').references(() => layouts.id).notNull(),
+    sectionId: integer('section_id').references(() => menuSections.id).notNull(),
+    status: varchar('status', { length: 20 }).default('pending').notNull(), // 'pending', 'approved', 'rejected'
+    notes: text('notes'),
+    approvedAt: timestamp('approved_at'),
+    approvedByUserId: integer('approved_by_user_id').references(() => users.id),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+    layoutIdx: index('section_approvals_layout_idx').on(table.layoutId),
+    sectionIdx: index('section_approvals_section_idx').on(table.sectionId),
+    statusIdx: index('section_approvals_status_idx').on(table.status),
+}));
+
+// ============================================
+// Feedback (voice/text)
+// ============================================
+export const feedback = pgTable('feedback', {
+    id: serial('id').primaryKey(),
+    restaurantId: integer('restaurant_id').references(() => restaurants.id).notNull(),
+    layoutId: integer('layout_id').references(() => layouts.id),
+    sectionId: integer('section_id').references(() => menuSections.id),
+    source: varchar('source', { length: 20 }).default('voice'), // 'voice', 'text'
+    transcript: text('transcript'),
+    metadata: json('metadata'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+    restaurantIdx: index('feedback_restaurant_idx').on(table.restaurantId),
+    layoutIdx: index('feedback_layout_idx').on(table.layoutId),
+}));
+
+// ============================================
+// Offers (dynamic promotions)
+// ============================================
+export const offers = pgTable('offers', {
+    id: serial('id').primaryKey(),
+    restaurantId: integer('restaurant_id').references(() => restaurants.id).notNull(),
+    layoutId: integer('layout_id').references(() => layouts.id),
+    sectionId: integer('section_id').references(() => menuSections.id),
+    title: varchar('title', { length: 255 }).notNull(),
+    description: text('description'),
+    type: varchar('type', { length: 50 }).default('promo'),
+    discountPercent: decimal('discount_percent', { precision: 5, scale: 2 }),
+    discountAmount: decimal('discount_amount', { precision: 10, scale: 2 }),
+    status: varchar('status', { length: 20 }).default('draft'), // 'draft', 'active', 'paused', 'archived'
+    startsAt: timestamp('starts_at'),
+    endsAt: timestamp('ends_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+    restaurantIdx: index('offers_restaurant_idx').on(table.restaurantId),
+    layoutIdx: index('offers_layout_idx').on(table.layoutId),
+    sectionIdx: index('offers_section_idx').on(table.sectionId),
+}));
+
+// ============================================
+// Offer Arms (multi-armed bandit)
+// ============================================
+export const offerArms = pgTable('offer_arms', {
+    id: serial('id').primaryKey(),
+    offerId: integer('offer_id').references(() => offers.id).notNull(),
+    name: varchar('name', { length: 100 }).notNull(),
+    weight: decimal('weight', { precision: 5, scale: 2 }).default('0'),
+    impressions: integer('impressions').default(0),
+    conversions: integer('conversions').default(0),
+    revenue: decimal('revenue', { precision: 12, scale: 2 }).default('0'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+    offerIdx: index('offer_arms_offer_idx').on(table.offerId),
+}));
+
+// ============================================
+// Offer Events (tracking)
+// ============================================
+export const offerEvents = pgTable('offer_events', {
+    id: serial('id').primaryKey(),
+    offerId: integer('offer_id').references(() => offers.id).notNull(),
+    restaurantId: integer('restaurant_id').references(() => restaurants.id).notNull(),
+    eventType: varchar('event_type', { length: 50 }).notNull(), // 'impression', 'click', 'redeem'
+    eventData: json('event_data'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+    offerIdx: index('offer_events_offer_idx').on(table.offerId),
+    typeIdx: index('offer_events_type_idx').on(table.eventType),
+}));
+
+// ============================================
 // App Events Table (User behavior tracking)
 // ============================================
 export const appEvents = pgTable('app_events', {
     id: serial('id').primaryKey(),
     restaurantId: integer('restaurant_id').references(() => restaurants.id).notNull(),
     userId: integer('user_id'), // External customer user ID
+    sessionId: varchar('session_id', { length: 100 }),
     eventType: varchar('event_type', { length: 100 }).notNull(),
     eventData: json('event_data'),
+    tableNumber: varchar('table_number', { length: 20 }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
     restaurantIdx: index('app_events_restaurant_idx').on(table.restaurantId),
     eventTypeIdx: index('app_events_type_idx').on(table.eventType),
+    sessionIdx: index('app_events_session_idx').on(table.sessionId),
+}));
+
+// ============================================
+// Customer Orders Table
+// ============================================
+export const customerOrders = pgTable('customer_orders', {
+    id: serial('id').primaryKey(),
+    restaurantId: integer('restaurant_id').references(() => restaurants.id).notNull(),
+    sessionId: varchar('session_id', { length: 100 }).notNull(),
+    tableNumber: varchar('table_number', { length: 20 }),
+    status: varchar('status', { length: 50 }).default('pending').notNull(), // 'pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled'
+    subtotal: decimal('subtotal', { precision: 10, scale: 2 }).notNull(),
+    discount: decimal('discount', { precision: 10, scale: 2 }).default('0'),
+    tax: decimal('tax', { precision: 10, scale: 2 }).default('0'),
+    total: decimal('total', { precision: 10, scale: 2 }).notNull(),
+    paymentMethod: varchar('payment_method', { length: 50 }),
+    paymentStatus: varchar('payment_status', { length: 50 }).default('pending'), // 'pending', 'paid', 'failed', 'refunded'
+    notes: text('notes'),
+    metadata: json('metadata'),
+    orderedAt: timestamp('ordered_at').defaultNow().notNull(),
+    completedAt: timestamp('completed_at'),
+}, (table) => ({
+    restaurantIdx: index('customer_orders_restaurant_idx').on(table.restaurantId),
+    sessionIdx: index('customer_orders_session_idx').on(table.sessionId),
+    statusIdx: index('customer_orders_status_idx').on(table.status),
+}));
+
+// ============================================
+// Customer Order Items Table
+// ============================================
+export const customerOrderItems = pgTable('customer_order_items', {
+    id: serial('id').primaryKey(),
+    orderId: integer('order_id').references(() => customerOrders.id).notNull(),
+    menuItemId: integer('menu_item_id').references(() => menuItems.id),
+    name: varchar('name', { length: 255 }).notNull(),
+    price: decimal('price', { precision: 10, scale: 2 }).notNull(),
+    quantity: integer('quantity').default(1).notNull(),
+    modifiers: json('modifiers'), // Array of modifications
+    notes: text('notes'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+    orderIdx: index('customer_order_items_order_idx').on(table.orderId),
+    menuItemIdx: index('customer_order_items_menu_item_idx').on(table.menuItemId),
+}));
+
+// ============================================
+// Menu Popups/Promotions Table
+// ============================================
+export const menuPopups = pgTable('menu_popups', {
+    id: serial('id').primaryKey(),
+    restaurantId: integer('restaurant_id').references(() => restaurants.id).notNull(),
+    layoutId: integer('layout_id').references(() => layouts.id),
+    type: varchar('type', { length: 50 }).default('promo').notNull(), // 'welcome', 'promo', 'featured', 'custom'
+    title: varchar('title', { length: 255 }).notNull(),
+    description: text('description'),
+    imageUrl: text('image_url'),
+    menuItemId: integer('menu_item_id').references(() => menuItems.id),
+    discountPercent: decimal('discount_percent', { precision: 5, scale: 2 }),
+    discountAmount: decimal('discount_amount', { precision: 10, scale: 2 }),
+    cta: varchar('cta', { length: 100 }),
+    backgroundColor: varchar('background_color', { length: 20 }),
+    status: varchar('status', { length: 20 }).default('active'), // 'active', 'inactive', 'scheduled'
+    triggerCondition: varchar('trigger_condition', { length: 50 }).default('on_load'), // 'on_load', 'after_delay', 'on_scroll', 'on_exit'
+    triggerDelay: integer('trigger_delay').default(0), // Seconds
+    showOnce: boolean('show_once').default(true),
+    priority: integer('priority').default(0),
+    startsAt: timestamp('starts_at'),
+    endsAt: timestamp('ends_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+    restaurantIdx: index('menu_popups_restaurant_idx').on(table.restaurantId),
+    statusIdx: index('menu_popups_status_idx').on(table.status),
+}));
+
+// ============================================
+// Restaurant Context Table (AI Context Storage)
+// ============================================
+export const restaurantContext = pgTable('restaurant_context', {
+    id: serial('id').primaryKey(),
+    restaurantId: integer('restaurant_id').references(() => restaurants.id).notNull().unique(),
+    context: json('context').$type<{
+        menuItems: unknown[];
+        categories: string[];
+        salesData?: unknown;
+        menuEngineering?: unknown;
+        colorPalette?: unknown;
+        extractedImages?: unknown[];
+    }>(),
+    lastAnalyzedAt: timestamp('last_analyzed_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+    restaurantIdx: index('restaurant_context_restaurant_idx').on(table.restaurantId),
 }));
 
 // ============================================
@@ -211,6 +404,9 @@ export const restaurantsRelations = relations(restaurants, ({ one, many }) => ({
     analytics: many(analytics),
     layouts: many(layouts),
     appEvents: many(appEvents),
+    feedback: many(feedback),
+    offers: many(offers),
+    offerEvents: many(offerEvents),
 }));
 
 export const menuSectionsRelations = relations(menuSections, ({ one, many }) => ({
@@ -219,6 +415,9 @@ export const menuSectionsRelations = relations(menuSections, ({ one, many }) => 
         references: [restaurants.id],
     }),
     menuItems: many(menuItems),
+    approvals: many(sectionApprovals),
+    offers: many(offers),
+    feedback: many(feedback),
 }));
 
 export const menuItemsRelations = relations(menuItems, ({ one, many }) => ({
@@ -261,6 +460,116 @@ export const layoutsRelations = relations(layouts, ({ one }) => ({
         fields: [layouts.restaurantId],
         references: [restaurants.id],
     }),
+    appliedByUser: one(users, {
+        fields: [layouts.appliedByUserId],
+        references: [users.id],
+    }),
+}));
+
+export const sectionApprovalsRelations = relations(sectionApprovals, ({ one }) => ({
+    layout: one(layouts, {
+        fields: [sectionApprovals.layoutId],
+        references: [layouts.id],
+    }),
+    section: one(menuSections, {
+        fields: [sectionApprovals.sectionId],
+        references: [menuSections.id],
+    }),
+    approvedByUser: one(users, {
+        fields: [sectionApprovals.approvedByUserId],
+        references: [users.id],
+    }),
+}));
+
+export const feedbackRelations = relations(feedback, ({ one }) => ({
+    restaurant: one(restaurants, {
+        fields: [feedback.restaurantId],
+        references: [restaurants.id],
+    }),
+    layout: one(layouts, {
+        fields: [feedback.layoutId],
+        references: [layouts.id],
+    }),
+    section: one(menuSections, {
+        fields: [feedback.sectionId],
+        references: [menuSections.id],
+    }),
+}));
+
+export const offersRelations = relations(offers, ({ one, many }) => ({
+    restaurant: one(restaurants, {
+        fields: [offers.restaurantId],
+        references: [restaurants.id],
+    }),
+    layout: one(layouts, {
+        fields: [offers.layoutId],
+        references: [layouts.id],
+    }),
+    section: one(menuSections, {
+        fields: [offers.sectionId],
+        references: [menuSections.id],
+    }),
+    arms: many(offerArms),
+    events: many(offerEvents),
+}));
+
+export const offerArmsRelations = relations(offerArms, ({ one }) => ({
+    offer: one(offers, {
+        fields: [offerArms.offerId],
+        references: [offers.id],
+    }),
+}));
+
+export const offerEventsRelations = relations(offerEvents, ({ one }) => ({
+    offer: one(offers, {
+        fields: [offerEvents.offerId],
+        references: [offers.id],
+    }),
+    restaurant: one(restaurants, {
+        fields: [offerEvents.restaurantId],
+        references: [restaurants.id],
+    }),
+}));
+
+export const customerOrdersRelations = relations(customerOrders, ({ one, many }) => ({
+    restaurant: one(restaurants, {
+        fields: [customerOrders.restaurantId],
+        references: [restaurants.id],
+    }),
+    items: many(customerOrderItems),
+}));
+
+export const customerOrderItemsRelations = relations(customerOrderItems, ({ one }) => ({
+    order: one(customerOrders, {
+        fields: [customerOrderItems.orderId],
+        references: [customerOrders.id],
+    }),
+    menuItem: one(menuItems, {
+        fields: [customerOrderItems.menuItemId],
+        references: [menuItems.id],
+    }),
+}));
+
+export const menuPopupsRelations = relations(menuPopups, ({ one }) => ({
+    restaurant: one(restaurants, {
+        fields: [menuPopups.restaurantId],
+        references: [restaurants.id],
+    }),
+    layout: one(layouts, {
+        fields: [menuPopups.layoutId],
+        references: [layouts.id],
+    }),
+    menuItem: one(menuItems, {
+        fields: [menuPopups.menuItemId],
+        references: [menuItems.id],
+    }),
+}));
+
+export const restaurantContextRelations = relations(restaurantContext, ({ one }) => ({
+    restaurant: one(restaurants, {
+        fields: [restaurantContext.restaurantId],
+        references: [restaurants.id],
+    }),
 }));
 
 // ============================================
@@ -289,3 +598,30 @@ export type NewLayout = typeof layouts.$inferInsert;
 
 export type AppEvent = typeof appEvents.$inferSelect;
 export type NewAppEvent = typeof appEvents.$inferInsert;
+
+export type SectionApproval = typeof sectionApprovals.$inferSelect;
+export type NewSectionApproval = typeof sectionApprovals.$inferInsert;
+
+export type Feedback = typeof feedback.$inferSelect;
+export type NewFeedback = typeof feedback.$inferInsert;
+
+export type Offer = typeof offers.$inferSelect;
+export type NewOffer = typeof offers.$inferInsert;
+
+export type OfferArm = typeof offerArms.$inferSelect;
+export type NewOfferArm = typeof offerArms.$inferInsert;
+
+export type OfferEvent = typeof offerEvents.$inferSelect;
+export type NewOfferEvent = typeof offerEvents.$inferInsert;
+
+export type CustomerOrder = typeof customerOrders.$inferSelect;
+export type NewCustomerOrder = typeof customerOrders.$inferInsert;
+
+export type CustomerOrderItem = typeof customerOrderItems.$inferSelect;
+export type NewCustomerOrderItem = typeof customerOrderItems.$inferInsert;
+
+export type MenuPopup = typeof menuPopups.$inferSelect;
+export type NewMenuPopup = typeof menuPopups.$inferInsert;
+
+export type RestaurantContext = typeof restaurantContext.$inferSelect;
+export type NewRestaurantContext = typeof restaurantContext.$inferInsert;

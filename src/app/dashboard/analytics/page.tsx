@@ -4,19 +4,43 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, Badge } from '@/components/ui';
 
-interface MenuItem {
-    id: number;
-    name: string;
-    price: string;
-    cost: string | null;
-    popularity?: number;
-    profitability?: number;
-    category?: 'star' | 'workhorse' | 'puzzle' | 'dog';
-}
-
 interface Restaurant {
     id: number;
     name: string;
+}
+
+interface OrderItem {
+    id: number;
+    name: string;
+    quantity: number;
+    price: number;
+}
+
+interface Order {
+    id: number;
+    sessionId: string;
+    totalAmount: number;
+    itemCount: number;
+    createdAt: string;
+    items: OrderItem[];
+}
+
+interface TopItem {
+    id: number;
+    name: string;
+    quantity: number;
+    revenue: number;
+    orderCount: number;
+}
+
+interface OrderAnalytics {
+    summary: {
+        totalOrders: number;
+        totalRevenue: number;
+        avgOrderValue: number;
+    };
+    topItems: TopItem[];
+    recentOrders: Order[];
 }
 
 export default function AnalyticsPage() {
@@ -25,7 +49,8 @@ export default function AnalyticsPage() {
 
     const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
     const [selectedRestaurant, setSelectedRestaurant] = useState<string>(restaurantId || '');
-    const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+    const [orderAnalytics, setOrderAnalytics] = useState<OrderAnalytics | null>(null);
+    const [period, setPeriod] = useState<'7d' | '14d' | '30d'>('30d');
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -34,9 +59,9 @@ export default function AnalyticsPage() {
 
     useEffect(() => {
         if (selectedRestaurant) {
-            fetchMenuItems();
+            fetchOrderAnalytics();
         }
-    }, [selectedRestaurant]);
+    }, [selectedRestaurant, period]);
 
     const fetchRestaurants = async () => {
         try {
@@ -58,44 +83,17 @@ export default function AnalyticsPage() {
         }
     };
 
-    const fetchMenuItems = async () => {
+    const fetchOrderAnalytics = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`/api/restaurants/${selectedRestaurant}/menu`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await fetch(`/api/analytics/orders?restaurantId=${selectedRestaurant}&period=${period}`);
             if (res.ok) {
                 const data = await res.json();
-                // Add mock BCG categories for demo
-                const items = (data.items || []).map((item: MenuItem, i: number) => ({
-                    ...item,
-                    popularity: Math.random() * 100,
-                    profitability: item.cost
-                        ? ((parseFloat(item.price) - parseFloat(item.cost)) / parseFloat(item.price)) * 100
-                        : Math.random() * 100,
-                    category: ['star', 'workhorse', 'puzzle', 'dog'][i % 4] as MenuItem['category'],
-                }));
-                setMenuItems(items);
+                setOrderAnalytics(data);
             }
         } catch (error) {
-            console.error('Failed to fetch menu items:', error);
+            console.error('Failed to fetch order analytics:', error);
         }
     };
-
-    const categorizeItem = (popularity: number, profitability: number): MenuItem['category'] => {
-        const highPop = popularity > 50;
-        const highProfit = profitability > 50;
-
-        if (highPop && highProfit) return 'star';
-        if (highPop && !highProfit) return 'workhorse';
-        if (!highPop && highProfit) return 'puzzle';
-        return 'dog';
-    };
-
-    const stars = menuItems.filter(i => i.category === 'star');
-    const workhorses = menuItems.filter(i => i.category === 'workhorse');
-    const puzzles = menuItems.filter(i => i.category === 'puzzle');
-    const dogs = menuItems.filter(i => i.category === 'dog');
 
     if (loading) {
         return (
@@ -110,208 +108,152 @@ export default function AnalyticsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Analytics</h1>
-                    <p className="text-gray-400 mt-1">BCG Matrix analysis for menu optimization</p>
+                    <h1 className="text-2xl font-bold text-white">Orders</h1>
+                    <p className="text-gray-400 mt-1">See what customers are ordering</p>
                 </div>
-                <select
-                    value={selectedRestaurant}
-                    onChange={(e) => setSelectedRestaurant(e.target.value)}
-                    className="px-4 py-2 bg-gray-900 border border-gray-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/20"
-                >
-                    <option value="">Select restaurant</option>
-                    {restaurants.map((r) => (
-                        <option key={r.id} value={r.id}>
-                            {r.name}
-                        </option>
-                    ))}
-                </select>
+                <div className="flex items-center gap-3">
+                    <select
+                        value={period}
+                        onChange={(e) => setPeriod(e.target.value as '7d' | '14d' | '30d')}
+                        className="px-3 py-2 bg-gray-900 border border-gray-800 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-white/20"
+                    >
+                        <option value="7d">Last 7 days</option>
+                        <option value="14d">Last 14 days</option>
+                        <option value="30d">Last 30 days</option>
+                    </select>
+                    <select
+                        value={selectedRestaurant}
+                        onChange={(e) => setSelectedRestaurant(e.target.value)}
+                        className="px-4 py-2 bg-gray-900 border border-gray-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/20"
+                    >
+                        <option value="">Select restaurant</option>
+                        {restaurants.map((r) => (
+                            <option key={r.id} value={r.id}>
+                                {r.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             {!selectedRestaurant ? (
                 <Card>
                     <CardContent>
                         <div className="text-center py-12">
-                            <p className="text-gray-400">Select a restaurant to view analytics</p>
+                            <p className="text-gray-400">Select a restaurant to view orders</p>
                         </div>
                     </CardContent>
                 </Card>
-            ) : menuItems.length === 0 ? (
-                <Card>
-                    <CardContent>
-                        <div className="text-center py-12">
-                            <p className="text-gray-400">No menu items found. Import data to see analytics.</p>
-                        </div>
-                    </CardContent>
-                </Card>
-            ) : (
+            ) : orderAnalytics ? (
                 <>
-                    {/* BCG Matrix Visualization */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Matrix Grid */}
-                        <Card className="lg:col-span-2">
-                            <CardContent>
-                                <h3 className="text-lg font-semibold text-white mb-6">BCG Matrix</h3>
-                                <div className="grid grid-cols-2 gap-4 h-96">
-                                    {/* Stars - High Popularity, High Profitability */}
-                                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 relative overflow-hidden">
-                                        <div className="absolute top-2 left-3">
-                                            <span className="text-yellow-400 text-xs font-medium uppercase tracking-wider">Stars</span>
-                                        </div>
-                                        <div className="absolute top-2 right-3">
-                                            <Badge variant="warning" size="sm">{stars.length}</Badge>
-                                        </div>
-                                        <div className="mt-8 space-y-2 max-h-36 overflow-y-auto">
-                                            {stars.slice(0, 5).map((item) => (
-                                                <div key={item.id} className="flex items-center justify-between text-sm">
-                                                    <span className="text-white truncate">{item.name}</span>
-                                                    <span className="text-yellow-400">${parseFloat(item.price).toFixed(0)}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <p className="absolute bottom-3 left-3 text-xs text-yellow-400/60">
-                                            High popularity & profit → Promote heavily
-                                        </p>
-                                    </div>
-
-                                    {/* Puzzles - Low Popularity, High Profitability */}
-                                    <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-4 relative overflow-hidden">
-                                        <div className="absolute top-2 left-3">
-                                            <span className="text-purple-400 text-xs font-medium uppercase tracking-wider">Puzzles</span>
-                                        </div>
-                                        <div className="absolute top-2 right-3">
-                                            <Badge variant="info" size="sm">{puzzles.length}</Badge>
-                                        </div>
-                                        <div className="mt-8 space-y-2 max-h-36 overflow-y-auto">
-                                            {puzzles.slice(0, 5).map((item) => (
-                                                <div key={item.id} className="flex items-center justify-between text-sm">
-                                                    <span className="text-white truncate">{item.name}</span>
-                                                    <span className="text-purple-400">${parseFloat(item.price).toFixed(0)}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <p className="absolute bottom-3 left-3 text-xs text-purple-400/60">
-                                            High profit, low sales → Needs marketing
-                                        </p>
-                                    </div>
-
-                                    {/* Workhorses - High Popularity, Low Profitability */}
-                                    <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 relative overflow-hidden">
-                                        <div className="absolute top-2 left-3">
-                                            <span className="text-blue-400 text-xs font-medium uppercase tracking-wider">Workhorses</span>
-                                        </div>
-                                        <div className="absolute top-2 right-3">
-                                            <Badge variant="info" size="sm">{workhorses.length}</Badge>
-                                        </div>
-                                        <div className="mt-8 space-y-2 max-h-36 overflow-y-auto">
-                                            {workhorses.slice(0, 5).map((item) => (
-                                                <div key={item.id} className="flex items-center justify-between text-sm">
-                                                    <span className="text-white truncate">{item.name}</span>
-                                                    <span className="text-blue-400">${parseFloat(item.price).toFixed(0)}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <p className="absolute bottom-3 left-3 text-xs text-blue-400/60">
-                                            Popular but low margin → Optimize cost
-                                        </p>
-                                    </div>
-
-                                    {/* Dogs - Low Popularity, Low Profitability */}
-                                    <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 relative overflow-hidden">
-                                        <div className="absolute top-2 left-3">
-                                            <span className="text-red-400 text-xs font-medium uppercase tracking-wider">Dogs</span>
-                                        </div>
-                                        <div className="absolute top-2 right-3">
-                                            <Badge variant="danger" size="sm">{dogs.length}</Badge>
-                                        </div>
-                                        <div className="mt-8 space-y-2 max-h-36 overflow-y-auto">
-                                            {dogs.slice(0, 5).map((item) => (
-                                                <div key={item.id} className="flex items-center justify-between text-sm">
-                                                    <span className="text-white truncate">{item.name}</span>
-                                                    <span className="text-red-400">${parseFloat(item.price).toFixed(0)}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <p className="absolute bottom-3 left-3 text-xs text-red-400/60">
-                                            Low performance → Consider removing
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Axis labels */}
-                                <div className="mt-4 flex justify-between text-xs text-gray-500">
-                                    <span>← Low Popularity</span>
-                                    <span>High Popularity →</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Summary Stats */}
+                    {/* Quick Stats */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Card>
                             <CardContent>
-                                <h3 className="text-lg font-semibold text-white mb-4">Summary</h3>
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-400">Total Items</span>
-                                        <span className="text-white font-medium">{menuItems.length}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-400">Stars</span>
-                                        <span className="text-yellow-400 font-medium">{stars.length} ({Math.round(stars.length / menuItems.length * 100)}%)</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-400">Workhorses</span>
-                                        <span className="text-blue-400 font-medium">{workhorses.length} ({Math.round(workhorses.length / menuItems.length * 100)}%)</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-400">Puzzles</span>
-                                        <span className="text-purple-400 font-medium">{puzzles.length} ({Math.round(puzzles.length / menuItems.length * 100)}%)</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-gray-400">Dogs</span>
-                                        <span className="text-red-400 font-medium">{dogs.length} ({Math.round(dogs.length / menuItems.length * 100)}%)</span>
-                                    </div>
-                                </div>
+                                <div className="text-gray-400 text-sm mb-1">Total Orders</div>
+                                <div className="text-3xl font-bold text-white">{orderAnalytics.summary.totalOrders}</div>
                             </CardContent>
                         </Card>
-
-                        {/* Recommendations */}
                         <Card>
                             <CardContent>
-                                <h3 className="text-lg font-semibold text-white mb-4">AI Recommendations</h3>
-                                <div className="space-y-3">
-                                    {stars.length > 0 && (
-                                        <div className="p-3 bg-yellow-500/5 border border-yellow-500/10 rounded-lg">
-                                            <p className="text-sm text-yellow-200">
-                                                <span className="font-medium">Promote Stars:</span> Feature {stars[0]?.name} prominently on your menu
-                                            </p>
-                                        </div>
-                                    )}
-                                    {dogs.length > 0 && (
-                                        <div className="p-3 bg-red-500/5 border border-red-500/10 rounded-lg">
-                                            <p className="text-sm text-red-200">
-                                                <span className="font-medium">Review Dogs:</span> Consider removing or repricing {dogs[0]?.name}
-                                            </p>
-                                        </div>
-                                    )}
-                                    {puzzles.length > 0 && (
-                                        <div className="p-3 bg-purple-500/5 border border-purple-500/10 rounded-lg">
-                                            <p className="text-sm text-purple-200">
-                                                <span className="font-medium">Market Puzzles:</span> Increase visibility of {puzzles[0]?.name}
-                                            </p>
-                                        </div>
-                                    )}
-                                    {workhorses.length > 0 && (
-                                        <div className="p-3 bg-blue-500/5 border border-blue-500/10 rounded-lg">
-                                            <p className="text-sm text-blue-200">
-                                                <span className="font-medium">Optimize Costs:</span> Review ingredient costs for {workhorses[0]?.name}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
+                                <div className="text-gray-400 text-sm mb-1">Total Revenue</div>
+                                <div className="text-3xl font-bold text-white">${orderAnalytics.summary.totalRevenue.toFixed(2)}</div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent>
+                                <div className="text-gray-400 text-sm mb-1">Avg Order</div>
+                                <div className="text-3xl font-bold text-white">${orderAnalytics.summary.avgOrderValue.toFixed(2)}</div>
                             </CardContent>
                         </Card>
                     </div>
+
+                    {/* Top Items - What's selling */}
+                    <Card>
+                        <CardContent>
+                            <h3 className="text-lg font-semibold text-white mb-4">🔥 What's Selling</h3>
+                            {orderAnalytics.topItems.length > 0 ? (
+                                <div className="space-y-3">
+                                    {orderAnalytics.topItems.slice(0, 10).map((item, idx) => (
+                                        <div key={item.id} className="flex items-center gap-4 p-3 bg-gray-800/50 rounded-lg">
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${idx === 0 ? 'bg-yellow-500 text-black' :
+                                                    idx === 1 ? 'bg-gray-300 text-black' :
+                                                        idx === 2 ? 'bg-orange-600 text-white' :
+                                                            'bg-gray-700 text-gray-300'
+                                                }`}>
+                                                {idx + 1}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="text-white font-medium">{item.name}</div>
+                                                <div className="text-sm text-gray-400">
+                                                    {item.quantity} sold • {item.orderCount} orders
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-xl font-bold text-green-400">${item.revenue.toFixed(2)}</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-gray-400">
+                                    No orders yet. Share your QR code to start getting orders!
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Recent Orders */}
+                    <Card>
+                        <CardContent>
+                            <h3 className="text-lg font-semibold text-white mb-4">📋 Recent Orders</h3>
+                            {orderAnalytics.recentOrders && orderAnalytics.recentOrders.length > 0 ? (
+                                <div className="space-y-4">
+                                    {orderAnalytics.recentOrders.slice(0, 10).map((order) => (
+                                        <div key={order.id} className="p-4 bg-gray-800/50 rounded-lg">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div className="flex items-center gap-2">
+                                                    <Badge variant="info">Order #{order.id}</Badge>
+                                                    <span className="text-gray-400 text-sm">
+                                                        {new Date(order.createdAt).toLocaleDateString('en-US', {
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                            hour: '2-digit',
+                                                            minute: '2-digit'
+                                                        })}
+                                                    </span>
+                                                </div>
+                                                <div className="text-lg font-bold text-white">
+                                                    ${order.totalAmount.toFixed(2)}
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {order.items.map((item, i) => (
+                                                    <span key={i} className="px-3 py-1 bg-gray-700 rounded-full text-sm text-white">
+                                                        {item.quantity}x {item.name}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-gray-400">
+                                    No orders yet
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                 </>
+            ) : (
+                <Card>
+                    <CardContent>
+                        <div className="text-center py-12">
+                            <div className="animate-spin h-8 w-8 border-2 border-orange-500 border-t-transparent rounded-full mx-auto mb-4" />
+                            <p className="text-gray-400">Loading orders...</p>
+                        </div>
+                    </CardContent>
+                </Card>
             )}
         </div>
     );

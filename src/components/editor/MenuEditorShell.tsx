@@ -31,7 +31,7 @@ export function MenuEditorShell() {
                 <section className="flex-1 p-6">
                     <div className="h-full rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6">
                         <p className="text-sm text-slate-500">
-                            Canvas placeholder — drag and drop menu items here.
+                            Select an item from the sidebar or drag to reposition.
                         </p>
                     </div>
                 </section>

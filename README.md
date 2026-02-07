@@ -2,6 +2,13 @@
 
 AI-powered menu optimization for restaurants.
 
+## Quick Start
+
+1. **Upload Menu** - Take a photo or upload a PDF of your menu
+2. **Choose Strategy** - AI generates 4 psychology-backed layouts
+3. **Deploy** - Get a QR code for your optimized menu
+4. **Iterate** - Track metrics and improve with AI insights
+
 ## Access
 
 Live app: [tweny.vercel.app](https://tweny.vercel.app)
@@ -12,26 +19,22 @@ Demo credentials:
 
 ## How It's Made
 
-Built with Next.js 15, React 19, and TypeScript. Uses Neon PostgreSQL for database with Drizzle ORM. Authentication with JWT and bcryptjs. Styled with Tailwind CSS.
-
-The app analyzes menu data using BCG matrix categorization to identify high performers (Stars), reliable earners (Workhorses), underperformers (Dogs), and potential items (Puzzles).
+Built with Next.js 15, React 19, and TypeScript. Uses:
+- **Tesseract.js** for menu OCR (supports 100+ languages)
+- **PDF.js** for PDF extraction
+- **Menu Psychology** - Golden Triangle, Anchoring, Decoy Pricing, Scarcity
+- **Real-time Analytics** for experiment tracking
 
 ## Features
 
-Currently available:
-- Restaurant management dashboard
-- Menu item tracking with costs and pricing
-- BCG Matrix analytics visualization
-- Data import via CSV upload
-- Visual menu editor interface
-
-## Coming Soon
-
-- AI agent with LangGraph for menu analysis
-- Automated recommendations for pricing and positioning
-- Layout generation based on item performance
-- Revenue impact projections
-- Advanced analytics and reporting
+- Upload PDF or image menus
+- AI-powered menu extraction (OCR)
+- 4 psychology-based layout strategies
+- QR code deployment
+- Mock payment flow
+- Voice feedback collection
+- Experiment tracking with scientific insights
+- AI chat assistant for optimization advice
 
 ## Local Development
 

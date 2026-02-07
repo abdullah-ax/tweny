@@ -13,6 +13,9 @@ export async function POST(request: Request) {
         return NextResponse.json({
             success: true,
             response: result.answer,
+            bullets: result.bullets,
+            citations: result.citations,
+            explanation: result.explanation,
             reasoning: result.reasoning,
             toolResults: result.toolResults,
         });

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button, Card, CardContent, Badge } from '@/components/ui';
+import { Button, Card, CardContent, Badge, Input } from '@/components/ui';
 
 interface Restaurant {
     id: number;
@@ -14,30 +14,30 @@ interface MenuItem {
     price: number;
     foodCost: number | null;
     category: string;
+    sectionId?: number | null;
 }
 
 interface MenuSection {
-    id: string;
+    id: number;
     name: string;
     items: MenuItem[];
 }
 
-// Mock sections for demo
-const createMockSections = (items: MenuItem[]): MenuSection[] => {
-    const categories: Record<string, MenuItem[]> = {};
+interface SectionApproval {
+    id: number;
+    sectionId: number;
+    status: 'pending' | 'approved' | 'rejected';
+}
 
-    items.forEach(item => {
-        const cat = item.category || 'Other';
-        if (!categories[cat]) categories[cat] = [];
-        categories[cat].push(item);
-    });
-
-    return Object.entries(categories).map(([name, items], index) => ({
-        id: `section-${index}`,
-        name,
-        items,
-    }));
-};
+interface ChatMessage {
+    id: string;
+    role: 'user' | 'assistant';
+    content: string;
+    bullets?: string[];
+    citations?: Array<{ label: string; value: string }>;
+    explanation?: string;
+    showExplanation?: boolean;
+}
 
 export default function EditorPage() {
     const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -46,6 +46,12 @@ export default function EditorPage() {
     const [loading, setLoading] = useState(true);
     const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
     const [draggedItem, setDraggedItem] = useState<string | null>(null);
+    const [layoutId, setLayoutId] = useState<number | null>(null);
+    const [approvals, setApprovals] = useState<Record<number, SectionApproval>>({});
+    const [approvalsLoading, setApprovalsLoading] = useState(false);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [chatInput, setChatInput] = useState('');
+    const [chatLoading, setChatLoading] = useState(false);
 
     useEffect(() => {
         fetchRestaurants();
@@ -53,9 +59,10 @@ export default function EditorPage() {
 
     useEffect(() => {
         if (selectedRestaurant) {
-            fetchMenuItems();
+            initializeEditor();
         }
     }, [selectedRestaurant]);
+
 
     const fetchRestaurants = async () => {
         try {
@@ -77,20 +84,219 @@ export default function EditorPage() {
         }
     };
 
-    const fetchMenuItems = async () => {
+    const fetchMenuData = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`/api/restaurants/${selectedRestaurant}/menu-items`, {
-                headers: { Authorization: `Bearer ${token}` },
+            const [itemsRes, sectionsRes] = await Promise.all([
+                fetch(`/api/restaurants/${selectedRestaurant}/menu`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                }),
+                fetch(`/api/restaurants/${selectedRestaurant}/sections`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                }),
+            ]);
+
+            if (!itemsRes.ok || !sectionsRes.ok) return;
+
+            const itemsData = await itemsRes.json();
+            const sectionsData = await sectionsRes.json();
+
+            const items: MenuItem[] = (itemsData.items || []).map((item: any) => ({
+                ...item,
+                price: item.price ? Number(item.price) : 0,
+                foodCost: item.cost ? Number(item.cost) : null,
+                category: item.type ?? 'Uncategorized',
+            }));
+
+            const sectionList: MenuSection[] = (sectionsData.sections || []).map((section: any) => ({
+                id: section.id,
+                name: section.title,
+                items: [],
+            }));
+
+            const sectionMap = new Map<number, MenuSection>();
+            sectionList.forEach(section => sectionMap.set(section.id, section));
+
+            items.forEach(item => {
+                if (item.sectionId && sectionMap.has(item.sectionId)) {
+                    sectionMap.get(item.sectionId)!.items.push(item);
+                }
             });
-            if (res.ok) {
-                const data = await res.json();
-                setSections(createMockSections(data.items || []));
-            }
+
+            setSections(Array.from(sectionMap.values()));
         } catch (error) {
             console.error('Failed to fetch menu items:', error);
         }
     };
+
+    const initializeEditor = async () => {
+        await fetchMenuData();
+        await ensureLayout();
+    };
+
+    const ensureLayout = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const latestRes = await fetch(`/api/restaurants/${selectedRestaurant}/layouts?latest=1`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (latestRes.ok) {
+                const latest = await latestRes.json();
+                if (latest.layout?.id) {
+                    setLayoutId(latest.layout.id);
+                    await fetchApprovals(latest.layout.id);
+                    return;
+                }
+            }
+
+            const createRes = await fetch(`/api/restaurants/${selectedRestaurant}/layouts`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: 'Draft Layout',
+                    strategy: 'manual',
+                    config: { sections: [], canvasSize: { width: 1200, height: 800 } },
+                }),
+            });
+
+            if (createRes.ok) {
+                const created = await createRes.json();
+                if (created.layout?.id) {
+                    setLayoutId(created.layout.id);
+                    await fetchApprovals(created.layout.id);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to initialize layout:', error);
+        }
+    };
+
+    const fetchApprovals = async (layout: number) => {
+        try {
+            setApprovalsLoading(true);
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/restaurants/${selectedRestaurant}/section-approvals?layoutId=${layout}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (!res.ok) return;
+            const data = await res.json();
+            const approvalMap: Record<number, SectionApproval> = {};
+            (data.approvals || []).forEach((approval: SectionApproval) => {
+                approvalMap[approval.sectionId] = approval;
+            });
+            setApprovals(approvalMap);
+        } catch (error) {
+            console.error('Failed to fetch approvals:', error);
+        } finally {
+            setApprovalsLoading(false);
+        }
+    };
+
+    const updateApproval = async (sectionId: number, status: 'approved' | 'rejected' | 'pending') => {
+        if (!layoutId) return;
+        try {
+            setApprovalsLoading(true);
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/restaurants/${selectedRestaurant}/section-approvals`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    layoutId,
+                    sectionId,
+                    status,
+                }),
+            });
+
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data.approval) {
+                setApprovals((prev) => ({
+                    ...prev,
+                    [sectionId]: data.approval,
+                }));
+            }
+        } catch (error) {
+            console.error('Failed to update approval:', error);
+        } finally {
+            setApprovalsLoading(false);
+        }
+    };
+
+    const getApprovalStatus = (sectionId: number) => {
+        return approvals[sectionId]?.status ?? 'pending';
+    };
+
+    const handleSendMessage = async () => {
+        if (!chatInput.trim() || !selectedRestaurant) return;
+
+        const userMessage: ChatMessage = {
+            id: `${Date.now()}-user`,
+            role: 'user',
+            content: chatInput.trim(),
+        };
+
+        setMessages((prev) => [...prev, userMessage]);
+        setChatInput('');
+        setChatLoading(true);
+
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/agent/chat', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: userMessage.content,
+                    restaurantId: Number(selectedRestaurant),
+                }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error || 'Failed to get response');
+            }
+
+            const assistantMessage: ChatMessage = {
+                id: `${Date.now()}-assistant`,
+                role: 'assistant',
+                content: data.response,
+                bullets: data.bullets,
+                citations: data.citations,
+                explanation: data.explanation,
+                showExplanation: false,
+            };
+
+            setMessages((prev) => [...prev, assistantMessage]);
+        } catch (error) {
+            const assistantMessage: ChatMessage = {
+                id: `${Date.now()}-assistant-error`,
+                role: 'assistant',
+                content: 'Sorry, I could not generate a response. Please try again.',
+            };
+            setMessages((prev) => [...prev, assistantMessage]);
+        } finally {
+            setChatLoading(false);
+        }
+    };
+
+    const toggleExplanation = (id: string) => {
+        setMessages((prev) =>
+            prev.map((msg) =>
+                msg.id === id ? { ...msg, showExplanation: !msg.showExplanation } : msg
+            )
+        );
+    };
+
 
     const handleDragStart = (itemId: string) => {
         setDraggedItem(itemId);
@@ -186,12 +392,34 @@ export default function EditorPage() {
                                                 </button>
                                                 <h3 className="font-semibold text-white">{section.name}</h3>
                                                 <Badge variant="info">{section.items.length} items</Badge>
+                                                {getApprovalStatus(section.id) === 'approved' && (
+                                                    <Badge variant="success">Approved</Badge>
+                                                )}
+                                                {getApprovalStatus(section.id) === 'rejected' && (
+                                                    <Badge variant="danger">Rejected</Badge>
+                                                )}
+                                                {getApprovalStatus(section.id) === 'pending' && (
+                                                    <Badge variant="warning">Pending</Badge>
+                                                )}
                                             </div>
-                                            <button className="text-gray-500 hover:text-white">
-                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                                                </svg>
-                                            </button>
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    size="sm"
+                                                    variant="secondary"
+                                                    disabled={approvalsLoading || !layoutId}
+                                                    onClick={() => updateApproval(section.id, 'approved')}
+                                                >
+                                                    Approve
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    disabled={approvalsLoading || !layoutId}
+                                                    onClick={() => updateApproval(section.id, 'rejected')}
+                                                >
+                                                    Reject
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
                                     <CardContent className="p-0">
@@ -233,9 +461,9 @@ export default function EditorPage() {
                     )}
                 </div>
 
-                {/* Properties Panel */}
-                <div className="overflow-auto">
-                    <Card className="h-full">
+                {/* Properties + AI Panel */}
+                <div className="overflow-auto space-y-6">
+                    <Card>
                         <div className="p-4 border-b border-gray-800">
                             <h3 className="font-semibold text-white">Item Properties</h3>
                         </div>
@@ -308,12 +536,12 @@ export default function EditorPage() {
                                         <div className="space-y-2">
                                             <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                                                 <p className="text-sm text-blue-300">
-                                                    💡 Consider adding a photo to increase visibility
+                                                    Consider adding a photo to increase visibility
                                                 </p>
                                             </div>
                                             <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
                                                 <p className="text-sm text-yellow-300">
-                                                    📊 This item performs well in the dinner slot
+                                                    This item performs well in the dinner slot
                                                 </p>
                                             </div>
                                         </div>
@@ -331,6 +559,84 @@ export default function EditorPage() {
                                     </p>
                                 </div>
                             )}
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <div className="p-4 border-b border-gray-800">
+                            <h3 className="font-semibold text-white">AI Assistant</h3>
+                            <p className="text-xs text-gray-500 mt-1">
+                                Ask for layout ideas or pricing suggestions
+                            </p>
+                        </div>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-3 max-h-72 overflow-auto pr-2">
+                                {messages.length === 0 && (
+                                    <div className="text-sm text-gray-500">
+                                        Try: “Optimize my appetizers section.”
+                                    </div>
+                                )}
+                                {messages.map((msg) => (
+                                    <div key={msg.id} className={msg.role === 'user' ? 'text-right' : ''}>
+                                        <div className={msg.role === 'user'
+                                            ? 'inline-block bg-white text-black text-sm px-3 py-2 rounded-lg'
+                                            : 'bg-gray-800 text-white text-sm px-3 py-2 rounded-lg'
+                                        }>
+                                            {msg.content}
+                                        </div>
+                                        {msg.role === 'assistant' && msg.bullets && (
+                                            <div className="mt-2 space-y-2 text-sm text-gray-300">
+                                                <ul className="list-disc pl-5 space-y-1">
+                                                    {msg.bullets.map((bullet, index) => (
+                                                        <li key={index}>{bullet}</li>
+                                                    ))}
+                                                </ul>
+                                                {msg.citations && (
+                                                    <div className="text-xs text-gray-500 space-y-1">
+                                                        {msg.citations.map((citation, index) => (
+                                                            <div key={index}>
+                                                                {citation.label}: {citation.value}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                {msg.explanation && (
+                                                    <button
+                                                        onClick={() => toggleExplanation(msg.id)}
+                                                        className="text-xs text-white/70 hover:text-white"
+                                                    >
+                                                        {msg.showExplanation ? 'Hide explanation' : 'More explanation'}
+                                                    </button>
+                                                )}
+                                                {msg.showExplanation && msg.explanation && (
+                                                    <p className="text-xs text-gray-400">{msg.explanation}</p>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <Input
+                                    value={chatInput}
+                                    onChange={(e) => setChatInput(e.target.value)}
+                                    placeholder="Ask the assistant..."
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleSendMessage();
+                                        }
+                                    }}
+                                />
+                                <Button
+                                    onClick={handleSendMessage}
+                                    loading={chatLoading}
+                                    disabled={!chatInput.trim() || chatLoading}
+                                >
+                                    Send
+                                </Button>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
