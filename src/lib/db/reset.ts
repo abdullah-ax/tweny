@@ -10,7 +10,6 @@ import { config } from 'dotenv';
 config({ path: '.env.local' });
 
 import { db } from './index';
-import { users, restaurants, menuSections, menuItems, restaurantContext, offers, layouts, analyticsEvents, orderItems, analytics, sectionApprovals } from './schema';
 import { sql } from 'drizzle-orm';
 
 async function reset() {
