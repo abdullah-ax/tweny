@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     if (!restaurantIdParam) {
         return NextResponse.json({ error: 'Restaurant ID required' }, { status: 400 });
     }
-    
+
     const restaurantId = parseInt(restaurantIdParam);
     if (isNaN(restaurantId)) {
         return NextResponse.json({ error: 'Invalid restaurant ID' }, { status: 400 });
@@ -29,14 +29,14 @@ export async function GET(request: Request) {
     // Verify user owns this restaurant
     const authHeader = request.headers.get('authorization');
     const user = await getUserFromToken(authHeader);
-    
+
     if (user) {
         // If authenticated, verify ownership
         const [restaurant] = await db
             .select({ ownerId: restaurants.ownerId })
             .from(restaurants)
             .where(eq(restaurants.id, restaurantId));
-        
+
         if (restaurant && restaurant.ownerId !== user.id) {
             return NextResponse.json({ error: 'Access denied' }, { status: 403 });
         }

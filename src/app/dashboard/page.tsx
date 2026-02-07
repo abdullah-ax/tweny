@@ -136,8 +136,8 @@ export default function DashboardPage() {
                             <h2 className="text-lg font-medium text-white">{currentExperiment.name}</h2>
                             <p className="text-gray-400 text-sm">{currentExperiment.strategyName}</p>
                         </div>
-                        <Button 
-                            variant="secondary" 
+                        <Button
+                            variant="secondary"
                             onClick={() => router.push('/dashboard/analytics')}
                         >
                             View Analytics
@@ -152,9 +152,8 @@ export default function DashboardPage() {
                 {steps.map((step) => (
                     <Card
                         key={step.number}
-                        className={`cursor-pointer transition-all hover:bg-gray-900/50 ${
-                            step.complete ? 'border-green-500/20' : ''
-                        }`}
+                        className={`cursor-pointer transition-all hover:bg-gray-900/50 ${step.complete ? 'border-green-500/20' : ''
+                            }`}
                         onClick={() => router.push(step.href)}
                     >
                         <CardContent className="flex items-center gap-4 py-4">
@@ -186,9 +185,9 @@ export default function DashboardPage() {
             {/* CTA */}
             {!currentExperiment && (
                 <div className="pt-4">
-                    <Button 
-                        className="w-full" 
-                        size="lg" 
+                    <Button
+                        className="w-full"
+                        size="lg"
                         onClick={() => router.push('/dashboard/onboarding')}
                     >
                         Get Started
