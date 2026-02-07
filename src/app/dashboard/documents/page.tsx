@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
+import Button from '@/components/ui/Button';
+import Badge from '@/components/ui/Badge';
 
 interface Document {
     id: number;
@@ -272,7 +272,7 @@ export default function DocumentsPage() {
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle>Uploaded Documents</CardTitle>
-                            <label className="cursor-pointer">
+                            <label className="cursor-pointer inline-flex">
                                 <input
                                     type="file"
                                     className="hidden"
@@ -280,12 +280,16 @@ export default function DocumentsPage() {
                                     onChange={handleFileUpload}
                                     disabled={uploading || !selectedRestaurant}
                                 />
-                                <Button as="span" loading={uploading} size="sm">
-                                    <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                                    </svg>
+                                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-white text-black text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+                                    {uploading ? (
+                                        <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                                    ) : (
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                        </svg>
+                                    )}
                                     Upload
-                                </Button>
+                                </span>
                             </label>
                         </CardHeader>
                         <CardContent>
@@ -300,7 +304,7 @@ export default function DocumentsPage() {
                                     </svg>
                                     <h3 className="text-lg font-medium text-white mb-2">No Documents</h3>
                                     <p className="text-gray-400 mb-4">Upload your menu PDF or images to get started</p>
-                                    <label className="cursor-pointer">
+                                    <label className="cursor-pointer inline-flex">
                                         <input
                                             type="file"
                                             className="hidden"
@@ -308,7 +312,9 @@ export default function DocumentsPage() {
                                             onChange={handleFileUpload}
                                             disabled={uploading || !selectedRestaurant}
                                         />
-                                        <Button as="span">Upload Document</Button>
+                                        <span className="inline-flex items-center px-4 py-2 bg-white text-black font-medium rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+                                            Upload Document
+                                        </span>
                                     </label>
                                 </div>
                             ) : (
@@ -318,8 +324,8 @@ export default function DocumentsPage() {
                                             key={doc.id}
                                             onClick={() => setSelectedDoc(doc)}
                                             className={`flex items-center gap-4 p-4 rounded-lg border cursor-pointer transition-all ${selectedDoc?.id === doc.id
-                                                    ? 'bg-orange-500/10 border-orange-500/50'
-                                                    : 'bg-gray-800/50 border-gray-700 hover:border-gray-600'
+                                                ? 'bg-orange-500/10 border-orange-500/50'
+                                                : 'bg-gray-800/50 border-gray-700 hover:border-gray-600'
                                                 }`}
                                         >
                                             {doc.thumbnailUrl ? (
@@ -436,7 +442,7 @@ export default function DocumentsPage() {
                                                     {(selectedDoc.extractedData.menuItems as unknown[]).length} menu items found
                                                 </p>
                                             )}
-                                            {selectedDoc.extractedData.colors && (
+                                            {typeof selectedDoc.extractedData.colors !== 'undefined' && (
                                                 <p className="text-sm text-gray-400">
                                                     Color palette extracted
                                                 </p>

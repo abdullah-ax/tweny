@@ -58,7 +58,7 @@ export default function HomePage() {
 
                         {/* Subheadline */}
                         <p className="text-lg text-gray-400 max-w-xl mx-auto mb-10">
-                            Upload your menu PDF. Get a mobile-optimized QR menu with built-in ordering, 
+                            Upload your menu PDF. Get a mobile-optimized QR menu with built-in ordering,
                             analytics, and AI-assisted design. No templates, no monthly fees per scan.
                         </p>
 

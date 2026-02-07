@@ -33,7 +33,7 @@ export async function GET(
         const restaurant = await db.query.restaurants.findFirst({
             where: and(
                 eq(restaurants.id, restaurantId),
-                eq(restaurants.ownerId, user.id)
+                eq(restaurants.ownerId, user.userId)
             ),
         });
 
@@ -84,7 +84,7 @@ export async function POST(
         const restaurant = await db.query.restaurants.findFirst({
             where: and(
                 eq(restaurants.id, restaurantId),
-                eq(restaurants.ownerId, user.id)
+                eq(restaurants.ownerId, user.userId)
             ),
         });
 
@@ -151,7 +151,7 @@ export async function DELETE(
         const restaurant = await db.query.restaurants.findFirst({
             where: and(
                 eq(restaurants.id, restaurantId),
-                eq(restaurants.ownerId, user.id)
+                eq(restaurants.ownerId, user.userId)
             ),
         });
 
