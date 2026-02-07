@@ -1,0 +1,43 @@
+{
+  "training_date": "2026-02-07T13:26:54.208421",
+  "models": {
+    "demand_forecaster": {
+      "status": "success",
+      "metrics": {
+        "train_rmse": 4.594825309994629,
+        "test_rmse": 6.537369616938232,
+        "train_mae": 0.5040648630053165,
+        "test_mae": 0.5166836820533863,
+        "train_r2": 0.10723382304623852,
+        "test_r2": -0.004883096919228391
+      },
+      "model_file": "demand_forecaster.pkl"
+    },
+    "price_optimizer": {
+      "status": "error",
+      "error": "\"Column(s) ['place_id'] do not exist\""
+    },
+    "menu_recommender": {
+      "status": "success",
+      "metrics": {
+        "num_transactions": 1208115,
+        "num_items": 25974,
+        "avg_items_per_transaction": 1.6547919693075577
+      },
+      "model_file": "menu_recommender.pkl"
+    },
+    "sales_predictor": {
+      "status": "error",
+      "error": "'place_id'"
+    }
+  },
+  "data_summary": {
+    "order_items": 1999341,
+    "menu_items": 30407,
+    "payments": 2528519,
+    "items": 87713,
+    "most_ordered": 95435,
+    "unique_menu_items": 26036,
+    "unique_places": 0
+  }
+}
