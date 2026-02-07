@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, Button } from '@/components/ui';
+import { LayoutSection, LayoutItem } from '@/lib/services/strategy.service';
 
 /**
  * Strategy options based on strategy-context.json menu engineering best practices
@@ -18,6 +19,14 @@ interface Strategy {
     layoutType: string;
     columns: number;
     idealFor: string[];
+}
+
+interface MenuItem {
+    id: string;
+    name: string;
+    description?: string;
+    price: number;
+    category?: string;
 }
 
 const strategies: Strategy[] = [
@@ -71,6 +80,7 @@ export default function StrategyPage() {
     const router = useRouter();
     const [selected, setSelected] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
     useEffect(() => {
         const ctx = sessionStorage.getItem('menuContext');
@@ -78,8 +88,74 @@ export default function StrategyPage() {
             router.push('/dashboard/onboarding');
             return;
         }
+        
+        // Load menu items from context
+        try {
+            const parsed = JSON.parse(ctx);
+            if (parsed.items && parsed.items.length > 0) {
+                setMenuItems(parsed.items);
+            }
+        } catch (e) {
+            console.error('Failed to parse menu context:', e);
+        }
+        
         setTimeout(() => setLoading(false), 400);
     }, [router]);
+
+    /**
+     * Build layout sections from menu items based on strategy
+     */
+    const buildSections = (items: MenuItem[], strategyId: string): LayoutSection[] => {
+        // Group items by category
+        const byCategory: Record<string, MenuItem[]> = {};
+        items.forEach(item => {
+            const cat = item.category || 'Menu';
+            if (!byCategory[cat]) byCategory[cat] = [];
+            byCategory[cat].push(item);
+        });
+
+        // Sort items by price (descending) for anchoring strategy
+        const sortByPrice = strategyId === 'anchoring';
+
+        return Object.entries(byCategory).map(([category, catItems], idx) => {
+            // Sort items if needed
+            const sortedItems = sortByPrice 
+                ? [...catItems].sort((a, b) => b.price - a.price)
+                : catItems;
+
+            return {
+                id: `section-${idx}`,
+                name: category,
+                position: idx,
+                items: sortedItems.map((item, itemIdx) => {
+                    // Apply strategy-specific highlighting
+                    const isHighlighted = 
+                        (strategyId === 'golden-triangle' && itemIdx === 0) ||
+                        (strategyId === 'scarcity' && itemIdx < 2);
+                    
+                    const isAnchor = strategyId === 'anchoring' && itemIdx === 0;
+                    const isDecoy = strategyId === 'decoy' && itemIdx === 1;
+
+                    // Add badges based on strategy
+                    const badges: string[] = [];
+                    if (strategyId === 'scarcity' && itemIdx === 0) badges.push('🔥 Most Popular');
+                    if (strategyId === 'scarcity' && itemIdx === 1) badges.push('⭐ Chef\'s Pick');
+                    if (strategyId === 'golden-triangle' && itemIdx === 0) badges.push('⭐ Featured');
+
+                    return {
+                        id: item.id || `item-${idx}-${itemIdx}`,
+                        name: item.name,
+                        description: item.description,
+                        price: item.price,
+                        badges,
+                        isHighlighted,
+                        isAnchor,
+                        isDecoy,
+                    } as LayoutItem;
+                }),
+            };
+        });
+    };
 
     const handleContinue = () => {
         if (selected) {
@@ -88,14 +164,23 @@ export default function StrategyPage() {
             // Get colors from context if available, otherwise use defaults
             const ctx = sessionStorage.getItem('menuContext');
             let extractedColors = null;
+            let items: MenuItem[] = menuItems;
+            
             if (ctx) {
                 try {
                     const parsed = JSON.parse(ctx);
                     extractedColors = parsed.extractedColors;
+                    // Also get items from context if not already loaded
+                    if (!items.length && parsed.items) {
+                        items = parsed.items;
+                    }
                 } catch (e) {
                     console.error('Failed to parse context:', e);
                 }
             }
+
+            // Build sections from actual menu items
+            const sections = buildSections(items, selected);
 
             // Default color scheme (can be customized from extracted colors)
             const colorScheme = {
@@ -123,7 +208,7 @@ export default function StrategyPage() {
                         bodyFont: 'Inter',
                         priceStyle: 'bold',
                     },
-                    sections: [],
+                    sections,
                 },
             }));
             router.push('/dashboard/deploy');
