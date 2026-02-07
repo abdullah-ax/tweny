@@ -447,22 +447,180 @@ export default function PublicMenuPage() {
                 });
                 const tax = subtotal * TAX_RATE;
                 const total = subtotal + tax;
-                const msg = 'Your Order:\\n\\n' + items.join('\\n') + '\\n\\nSubtotal: $' + subtotal.toFixed(2) + '\\nTax (8%): $' + tax.toFixed(2) + '\\nTotal: $' + total.toFixed(2) + '\\n\\n(Demo mode - tap OK to simulate checkout)';
-                if (confirm(msg)) {
-                    // Track checkout
+                
+                // Create custom checkout modal with voice feedback
+                const overlay = document.createElement('div');
+                overlay.id = 'checkout-overlay';
+                overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+                
+                const modal = document.createElement('div');
+                modal.style.cssText = 'background:#1f1f1f;border-radius:16px;width:100%;max-width:400px;max-height:90vh;overflow-y:auto;';
+                
+                let feedbackText = '';
+                let isListening = false;
+                let recognition = null;
+                
+                // Check for speech recognition
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const voiceSupported = !!SpeechRecognition;
+                
+                modal.innerHTML = \`
+                    <div style="padding:16px;border-bottom:1px solid #333;display:flex;justify-content:space-between;align-items:center;">
+                        <h2 style="color:white;font-size:18px;font-weight:bold;margin:0;">Checkout</h2>
+                        <button id="close-checkout" style="background:none;border:none;color:#888;font-size:24px;cursor:pointer;">&times;</button>
+                    </div>
+                    <div style="padding:16px;">
+                        <div style="background:#2a2a2a;border-radius:12px;padding:16px;margin-bottom:16px;">
+                            <h3 style="color:white;font-size:14px;margin:0 0 12px 0;">Order Summary</h3>
+                            \${items.map(i => '<div style="color:#888;font-size:14px;margin-bottom:4px;">' + i + '</div>').join('')}
+                            <div style="border-top:1px solid #444;margin-top:12px;padding-top:12px;">
+                                <div style="display:flex;justify-content:space-between;color:#888;font-size:14px;margin-bottom:4px;"><span>Subtotal</span><span>$\${subtotal.toFixed(2)}</span></div>
+                                <div style="display:flex;justify-content:space-between;color:#888;font-size:14px;margin-bottom:4px;"><span>Tax (8%)</span><span>$\${tax.toFixed(2)}</span></div>
+                                <div style="display:flex;justify-content:space-between;color:white;font-size:18px;font-weight:bold;margin-top:8px;"><span>Total</span><span>$\${total.toFixed(2)}</span></div>
+                            </div>
+                        </div>
+                        
+                        <div style="background:linear-gradient(to right,rgba(249,115,22,0.1),rgba(239,68,68,0.1));border:1px solid rgba(249,115,22,0.3);border-radius:12px;padding:16px;margin-bottom:16px;">
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                                <div style="width:40px;height:40px;background:rgba(249,115,22,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                                    <svg width="20" height="20" fill="none" stroke="#f97316" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                                </div>
+                                <div>
+                                    <h4 style="color:white;font-size:14px;margin:0;">Quick Voice Feedback</h4>
+                                    <p style="color:#888;font-size:12px;margin:0;">Help us improve! (Optional)</p>
+                                </div>
+                            </div>
+                            <div id="feedback-section">
+                                \${voiceSupported ? \`
+                                    <div style="display:flex;align-items:center;gap:12px;">
+                                        <button id="voice-btn" style="width:48px;height:48px;border-radius:50%;background:#f97316;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                                            <svg width="20" height="20" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                                        </button>
+                                        <span id="voice-status" style="color:#888;font-size:14px;">Tap to share your experience</span>
+                                    </div>
+                                    <div id="transcript-box" style="display:none;background:#2a2a2a;border-radius:8px;padding:12px;margin-top:12px;">
+                                        <p id="transcript-text" style="color:white;font-size:14px;margin:0 0 8px 0;"></p>
+                                        <div style="display:flex;gap:8px;">
+                                            <button id="submit-feedback-btn" style="font-size:12px;background:#22c55e;color:white;border:none;padding:6px 12px;border-radius:20px;cursor:pointer;">Submit</button>
+                                            <button id="clear-feedback-btn" style="font-size:12px;background:#444;color:white;border:none;padding:6px 12px;border-radius:20px;cursor:pointer;">Clear</button>
+                                        </div>
+                                    </div>
+                                \` : '<p style="color:#888;font-size:12px;">Voice not supported in this browser</p>'}
+                            </div>
+                            <div id="feedback-thanks" style="display:none;color:#22c55e;font-size:14px;">Thanks for your feedback!</div>
+                        </div>
+                        
+                        <div style="background:#2a2a2a;border-radius:12px;padding:16px;margin-bottom:16px;">
+                            <div style="display:flex;align-items:center;gap:8px;color:#22c55e;font-size:14px;margin-bottom:12px;">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                <span>Mock Payment (Demo)</span>
+                            </div>
+                            <input type="text" value="4242 4242 4242 4242" disabled style="width:100%;background:#444;border:1px solid #555;border-radius:8px;padding:12px;color:white;margin-bottom:8px;">
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                                <input type="text" value="12/28" disabled style="background:#444;border:1px solid #555;border-radius:8px;padding:12px;color:white;">
+                                <input type="text" value="123" disabled style="background:#444;border:1px solid #555;border-radius:8px;padding:12px;color:white;">
+                            </div>
+                        </div>
+                        
+                        <button id="pay-btn" style="width:100%;background:#f97316;color:white;border:none;padding:16px;border-radius:12px;font-size:18px;font-weight:600;cursor:pointer;">Pay $\${total.toFixed(2)}</button>
+                        <p style="text-align:center;color:#666;font-size:12px;margin-top:12px;">Demo mode - no real payment</p>
+                    </div>
+                \`;
+                
+                overlay.appendChild(modal);
+                document.body.appendChild(overlay);
+                
+                // Setup event handlers
+                document.getElementById('close-checkout').onclick = () => overlay.remove();
+                overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+                
+                if (voiceSupported) {
+                    recognition = new SpeechRecognition();
+                    recognition.continuous = false;
+                    recognition.interimResults = true;
+                    
+                    recognition.onresult = (e) => {
+                        const transcript = Array.from(e.results).map(r => r[0].transcript).join('');
+                        feedbackText = transcript;
+                        document.getElementById('transcript-text').textContent = transcript;
+                        document.getElementById('transcript-box').style.display = 'block';
+                    };
+                    
+                    recognition.onend = () => {
+                        isListening = false;
+                        const btn = document.getElementById('voice-btn');
+                        btn.style.background = '#f97316';
+                        document.getElementById('voice-status').textContent = 'Tap to share your experience';
+                    };
+                    
+                    document.getElementById('voice-btn').onclick = () => {
+                        if (isListening) {
+                            recognition.stop();
+                        } else {
+                            recognition.start();
+                            isListening = true;
+                            document.getElementById('voice-btn').style.background = '#ef4444';
+                            document.getElementById('voice-status').textContent = 'Listening... Tap to stop';
+                        }
+                    };
+                    
+                    document.getElementById('submit-feedback-btn').onclick = () => {
+                        if (feedbackText) {
+                            fetch('/api/public/feedback', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ restaurantId: ${restaurantId}, sessionId: 'web-' + Date.now(), source: 'voice', transcript: feedbackText })
+                            });
+                            document.getElementById('feedback-section').style.display = 'none';
+                            document.getElementById('feedback-thanks').style.display = 'block';
+                        }
+                    };
+                    
+                    document.getElementById('clear-feedback-btn').onclick = () => {
+                        feedbackText = '';
+                        document.getElementById('transcript-box').style.display = 'none';
+                    };
+                }
+                
+                document.getElementById('pay-btn').onclick = () => {
+                    const btn = document.getElementById('pay-btn');
+                    btn.disabled = true;
+                    btn.innerHTML = '<span style="display:inline-block;width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 1s linear infinite;"></span> Processing...';
+                    
+                    // Add spinner animation
+                    const style = document.createElement('style');
+                    style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+                    document.head.appendChild(style);
+                    
                     fetch('/api/analytics/orders', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ restaurantId: ${restaurantId}, items: Array.from(cart.entries()).map(([item, qty]) => ({ name: item.name, price: item.price, quantity: qty })), total: total, menuVersion: '${deployedMenu.version}' })
                     }).then(() => {
-                        alert('Order placed! (Demo)\\n\\nThis order is now tracked in analytics.');
+                        modal.innerHTML = \`
+                            <div style="padding:48px;text-align:center;">
+                                <div style="width:80px;height:80px;background:rgba(34,197,94,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;">
+                                    <svg width="40" height="40" fill="none" stroke="#22c55e" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                                <h2 style="color:white;font-size:24px;margin:0 0 8px;">Order Placed!</h2>
+                                <p style="color:#888;margin:0 0 24px;">Your order is being prepared</p>
+                                <div style="background:#2a2a2a;border-radius:12px;padding:16px;">
+                                    <p style="color:#f97316;font-size:14px;margin:0;">This order is now tracked in analytics</p>
+                                </div>
+                            </div>
+                        \`;
                         cart.clear();
                         updateCartUI();
                         document.querySelectorAll('.tweny-cart-actions').forEach(el => {
                             el.innerHTML = '<button class="tweny-add-btn">Add</button>';
                         });
-                    }).catch(() => alert('Order failed'));
-                }
+                        setTimeout(() => overlay.remove(), 3000);
+                    }).catch(() => {
+                        btn.disabled = false;
+                        btn.textContent = 'Pay $' + total.toFixed(2);
+                        alert('Order failed. Please try again.');
+                    });
+                };
             };
             
             // Track menu view
@@ -677,7 +835,7 @@ export default function PublicMenuPage() {
             {/* Checkout Modal */}
             {showCheckout && (
                 <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
-                    <div className="bg-gray-900 rounded-2xl w-full max-w-md overflow-hidden">
+                    <div className="bg-gray-900 rounded-2xl w-full max-w-md overflow-hidden max-h-[90vh] overflow-y-auto">
                         {paymentSuccess ? (
                             <div className="p-8 text-center">
                                 <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -689,14 +847,18 @@ export default function PublicMenuPage() {
                                 <p className="text-gray-400 mb-4">Your order has been placed.</p>
                                 {orderId && <p className="text-sm text-gray-500">Order ID: {orderId}</p>}
                                 <div className="mt-6 p-4 bg-gray-800 rounded-xl">
-                                    <p className="text-orange-400 text-sm">📊 This order is now tracked in analytics!</p>
+                                    <p className="text-orange-400 text-sm">This order is now tracked in analytics!</p>
                                 </div>
                             </div>
                         ) : (
                             <>
                                 <div className="p-4 border-b border-gray-800 flex items-center justify-between">
                                     <h2 className="text-xl font-bold text-white">Checkout</h2>
-                                    <button onClick={() => setShowCheckout(false)} className="text-gray-400 hover:text-white">✕</button>
+                                    <button onClick={() => setShowCheckout(false)} className="text-gray-400 hover:text-white">
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
                                 </div>
                                 <div className="p-4">
                                     <div className="bg-gray-800 rounded-xl p-4 mb-4">
@@ -711,6 +873,81 @@ export default function PublicMenuPage() {
                                             <span>Total</span><span>${cartTotal.toFixed(2)}</span>
                                         </div>
                                     </div>
+
+                                    {/* Pre-Payment Voice Feedback Section */}
+                                    <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/30 rounded-xl p-4 mb-4">
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <div className="w-10 h-10 bg-orange-500/20 rounded-full flex items-center justify-center">
+                                                <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h4 className="text-white font-medium text-sm">Quick Voice Feedback</h4>
+                                                <p className="text-gray-400 text-xs">Help us improve! (Optional)</p>
+                                            </div>
+                                        </div>
+
+                                        {feedbackSubmitted ? (
+                                            <div className="flex items-center gap-2 text-green-400 text-sm">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                Thanks for your feedback!
+                                            </div>
+                                        ) : voiceSupported ? (
+                                            <div className="space-y-3">
+                                                <div className="flex items-center gap-3">
+                                                    <button
+                                                        onClick={isListening ? stopVoiceCapture : startVoiceCapture}
+                                                        className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isListening
+                                                            ? 'bg-red-500 animate-pulse'
+                                                            : 'bg-orange-500 hover:bg-orange-600'
+                                                            }`}
+                                                    >
+                                                        {isListening ? (
+                                                            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                                <rect x="6" y="4" width="3" height="12" rx="1" />
+                                                                <rect x="11" y="4" width="3" height="12" rx="1" />
+                                                            </svg>
+                                                        ) : (
+                                                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                                            </svg>
+                                                        )}
+                                                    </button>
+                                                    <span className="text-sm text-gray-400 flex-1">
+                                                        {isListening ? 'Listening... Tap to stop' : 'Tap to share your experience'}
+                                                    </span>
+                                                </div>
+                                                {feedbackTranscript && (
+                                                    <div className="bg-gray-800 rounded-lg p-3">
+                                                        <p className="text-sm text-white">{feedbackTranscript}</p>
+                                                        <div className="flex gap-2 mt-2">
+                                                            <button
+                                                                onClick={submitFeedback}
+                                                                className="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-full"
+                                                            >
+                                                                Submit
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setFeedbackTranscript('')}
+                                                                className="text-xs bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-full"
+                                                            >
+                                                                Clear
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {voiceError && (
+                                                    <p className="text-red-400 text-xs">{voiceError}</p>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <p className="text-gray-500 text-xs">Voice not supported in this browser</p>
+                                        )}
+                                    </div>
+
                                     <div className="space-y-4">
                                         <h3 className="text-white font-medium">Payment Details</h3>
                                         <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
@@ -729,7 +966,7 @@ export default function PublicMenuPage() {
                                             </div>
                                         </div>
                                         <button onClick={processPayment} disabled={isProcessingPayment} className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-gray-700 text-white py-4 rounded-xl font-semibold text-lg transition-colors flex items-center justify-center gap-2">
-                                            {isProcessingPayment ? (<><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Processing...</>) : (<>💳 Pay ${cartTotal.toFixed(2)}</>)}
+                                            {isProcessingPayment ? (<><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Processing...</>) : (<>Pay ${cartTotal.toFixed(2)}</>)}
                                         </button>
                                         <p className="text-center text-xs text-gray-500">This is a demo. No real payment will be processed.</p>
                                     </div>

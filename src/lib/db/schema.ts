@@ -387,6 +387,32 @@ export const restaurantContext = pgTable('restaurant_context', {
 }));
 
 // ============================================
+// Restaurant Documents Table (Uploaded files)
+// ============================================
+export const restaurantDocuments = pgTable('restaurant_documents', {
+    id: serial('id').primaryKey(),
+    restaurantId: integer('restaurant_id').references(() => restaurants.id).notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    type: varchar('type', { length: 50 }).notNull(), // 'menu_pdf', 'menu_image', 'logo', 'sales_data', 'other'
+    mimeType: varchar('mime_type', { length: 100 }),
+    fileSize: integer('file_size'), // bytes
+    storageUrl: text('storage_url'), // URL or base64 data
+    thumbnailUrl: text('thumbnail_url'),
+    extractedData: json('extracted_data').$type<{
+        menuItems?: unknown[];
+        colors?: unknown;
+        text?: string;
+        pageCount?: number;
+    }>(),
+    status: varchar('status', { length: 20 }).default('processed'), // 'uploading', 'processing', 'processed', 'error'
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+    restaurantIdx: index('restaurant_documents_restaurant_idx').on(table.restaurantId),
+    typeIdx: index('restaurant_documents_type_idx').on(table.type),
+}));
+
+// ============================================
 // Relations
 // ============================================
 export const usersRelations = relations(users, ({ many }) => ({

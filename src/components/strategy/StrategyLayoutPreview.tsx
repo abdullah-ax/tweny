@@ -250,7 +250,7 @@ export function StrategyReasoningCard({ strategy, expanded = false }: StrategyRe
             {/* Reasoning Points */}
             {expanded && (
                 <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-white">🎯 How It Works For Your Menu</h4>
+                    <h4 className="text-sm font-medium text-white">How It Works For Your Menu</h4>
                     {reasoning.map((r, i) => (
                         <div key={i} className="bg-gray-800/30 rounded-lg p-2 border-l-2 border-orange-500/50">
                             <div className="flex items-start justify-between gap-2">

@@ -264,7 +264,7 @@ export default function OnboardingPage() {
                         if (createRes.ok) {
                             const { restaurant } = await createRes.json();
                             restaurantId = restaurant.id;
-                            console.log(`🏪 Created restaurant: ${restaurant.name} (ID: ${restaurantId})`);
+                            console.log(`Created restaurant: ${restaurant.name} (ID: ${restaurantId})`);
                         } else {
                             throw new Error('Failed to create restaurant');
                         }
@@ -304,7 +304,7 @@ export default function OnboardingPage() {
 
             if (importRes.ok) {
                 const importData = await importRes.json();
-                console.log(`📥 Saved ${importData.imported?.items || 0} menu items to database`);
+                console.log(`Saved ${importData.imported?.items || 0} menu items to database`);
             }
 
             // Store for next page (also keep in sessionStorage for quick access)

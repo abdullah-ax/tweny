@@ -176,10 +176,10 @@ function ImportContent() {
                             </label>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                 {[
-                                    { value: 'menuItems', label: 'Menu Items', icon: '🍽️' },
+                                    { value: 'menuItems', label: 'Menu Items', icon: 'menu' },
                                     { value: 'sections', label: 'Sections', icon: '📑' },
                                     { value: 'orderItems', label: 'Orders', icon: '📦' },
-                                    { value: 'appEvents', label: 'Events', icon: '📊' },
+                                    { value: 'appEvents', label: 'Events', icon: 'chart' },
                                 ].map((type) => (
                                     <button
                                         key={type.value}

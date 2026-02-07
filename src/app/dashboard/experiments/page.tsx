@@ -280,13 +280,13 @@ Provide actionable advice for menu optimization based on the scientific method.`
                     <h3 className="font-semibold text-white mb-4">Experiment Actions</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Button variant="secondary" onClick={handleNewExperiment}>
-                            🔄 Try New Strategy
+                            Try New Strategy
                         </Button>
                         <Button
                             variant="secondary"
                             onClick={() => window.open('/menu/live', '_blank')}
                         >
-                            👁️ Preview Live Menu
+                            Preview Live Menu
                         </Button>
                     </div>
                 </CardContent>

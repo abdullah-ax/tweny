@@ -160,7 +160,7 @@ export default function HomePage() {
                 <footer className="py-8 px-6 border-t border-gray-900">
                     <div className="max-w-6xl mx-auto flex items-center justify-between">
                         <p className="text-sm text-gray-600">© 2024 tweny. All rights reserved.</p>
-                        <p className="text-sm text-gray-600">Built for restaurants 🍽️</p>
+                        <p className="text-sm text-gray-600">Built for restaurants</p>
                     </div>
                 </footer>
             </main>

@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        console.log('🗑️ Starting database reset...');
+        console.log('Starting database reset...');
 
         // Delete in order of dependencies (children first)
         await db.delete(appEvents);
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        console.log('✅ Database reset complete!');
+        console.log('Database reset complete!');
 
         return NextResponse.json({
             success: true,

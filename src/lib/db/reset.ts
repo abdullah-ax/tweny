@@ -13,12 +13,12 @@ import { db } from './index';
 import { sql } from 'drizzle-orm';
 
 async function reset() {
-    console.log('🗑️  Starting database reset...\n');
+    console.log('Starting database reset...\n');
 
     try {
         // Delete all data in reverse dependency order using raw SQL for safety
         console.log('Truncating tables...');
-        
+
         await db.execute(sql`TRUNCATE TABLE analytics_events CASCADE`).catch(() => console.log('  - analytics_events: skipped'));
         await db.execute(sql`TRUNCATE TABLE section_approvals CASCADE`).catch(() => console.log('  - section_approvals: skipped'));
         await db.execute(sql`TRUNCATE TABLE analytics CASCADE`).catch(() => console.log('  - analytics: skipped'));
@@ -31,11 +31,11 @@ async function reset() {
         await db.execute(sql`TRUNCATE TABLE restaurants CASCADE`).catch(() => console.log('  - restaurants: skipped'));
         await db.execute(sql`TRUNCATE TABLE users CASCADE`).catch(() => console.log('  - users: skipped'));
 
-        console.log('\n✅ Database reset complete!');
-        console.log('\n🌱 Run `npm run db:seed` to create demo data');
+        console.log('\nDatabase reset complete!');
+        console.log('\nRun `npm run db:seed` to create demo data');
 
     } catch (error) {
-        console.error('❌ Reset error:', error);
+        console.error('Reset error:', error);
         process.exit(1);
     }
 

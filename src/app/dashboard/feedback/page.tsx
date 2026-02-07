@@ -230,7 +230,7 @@ function FeedbackContent() {
                                             >
                                                 <div className="flex items-start justify-between mb-2">
                                                     <Badge variant={item.source === 'voice' ? 'warning' : 'default'}>
-                                                        {item.source === 'voice' ? '🎙️ Voice' : '💬 Text'}
+                                                        {item.source === 'voice' ? 'Voice' : 'Text'}
                                                     </Badge>
                                                     <span className="text-xs text-gray-500">
                                                         {new Date(item.createdAt).toLocaleDateString()}
@@ -254,7 +254,7 @@ function FeedbackContent() {
                                     loading={analyzing}
                                     disabled={feedback.length === 0}
                                 >
-                                    ✨ Analyze Feedback
+                                    Analyze Feedback
                                 </Button>
                             </div>
                             <CardContent>

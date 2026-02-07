@@ -28,7 +28,7 @@ export async function POST(request: Request) {
         // Generate mock payment confirmation
         const transactionId = `TXN-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
 
-        console.log(`💳 Payment processed: ${transactionId} for order ${orderId} - $${amount.toFixed(2)}`);
+        console.log(`Payment processed: ${transactionId} for order ${orderId} - $${amount.toFixed(2)}`);
 
         return NextResponse.json({
             success: true,

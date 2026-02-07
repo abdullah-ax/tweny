@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
                 });
         }
 
-        console.log(`📥 Imported ${importedItems.length} menu items for restaurant ${restaurantId}`);
+        console.log(`Imported ${importedItems.length} menu items for restaurant ${restaurantId}`);
 
         return NextResponse.json({
             success: true,

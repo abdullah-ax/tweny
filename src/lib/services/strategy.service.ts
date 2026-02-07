@@ -678,7 +678,7 @@ export class MenuStrategyService {
                     name: item.name,
                     description: item.description,
                     price: this.parsePrice(item.price),
-                    badges: ['⭐ Star'],
+                    badges: ['Star'],
                     isHighlighted: true,
                     quadrant: 'star' as const,
                 }));

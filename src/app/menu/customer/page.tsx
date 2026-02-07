@@ -172,7 +172,7 @@ function CustomerMenuContent() {
                 id: 'appetizers',
                 name: 'Appetizers',
                 items: [
-                    { id: '1', name: 'Spring Rolls', description: 'Crispy vegetable rolls with sweet chili sauce', price: 8.99, category: 'Appetizers', badges: ['🔥 Popular'], isHighlighted: true },
+                    { id: '1', name: 'Spring Rolls', description: 'Crispy vegetable rolls with sweet chili sauce', price: 8.99, category: 'Appetizers', badges: ['Popular'], isHighlighted: true },
                     { id: '2', name: 'Soup of the Day', description: 'Ask your server for today\'s special', price: 6.99, category: 'Appetizers', badges: [] },
                     { id: '3', name: 'Bruschetta', description: 'Fresh tomato, basil, garlic on toasted bread', price: 9.99, category: 'Appetizers', badges: ["Chef's Pick"] },
                 ],
@@ -183,7 +183,7 @@ function CustomerMenuContent() {
                 items: [
                     { id: '4', name: 'Grilled Salmon', description: 'Atlantic salmon with seasonal vegetables', price: 24.99, category: 'Main Courses', badges: ['Premium'], isHighlighted: true, isAnchor: true },
                     { id: '5', name: 'Chicken Alfredo', description: 'Creamy pasta with grilled chicken breast', price: 18.99, category: 'Main Courses', badges: ['Best Value'], isHighlighted: true },
-                    { id: '6', name: 'Veggie Buddha Bowl', description: 'Quinoa, roasted vegetables, tahini dressing', price: 15.99, category: 'Main Courses', badges: ['🌱 Vegan'] },
+                    { id: '6', name: 'Veggie Buddha Bowl', description: 'Quinoa, roasted vegetables, tahini dressing', price: 15.99, category: 'Main Courses', badges: ['Vegan'] },
                     { id: '7', name: 'Ribeye Steak', description: '12oz prime cut with herb butter', price: 34.99, category: 'Main Courses', badges: ['Limited'] },
                 ],
             },
@@ -191,7 +191,7 @@ function CustomerMenuContent() {
                 id: 'desserts',
                 name: 'Desserts',
                 items: [
-                    { id: '8', name: 'Chocolate Lava Cake', description: 'Warm chocolate cake with molten center', price: 9.99, category: 'Desserts', badges: ['🔥 Trending'], isHighlighted: true },
+                    { id: '8', name: 'Chocolate Lava Cake', description: 'Warm chocolate cake with molten center', price: 9.99, category: 'Desserts', badges: ['Trending'], isHighlighted: true },
                     { id: '9', name: 'New York Cheesecake', description: 'Classic style with berry compote', price: 8.99, category: 'Desserts', badges: [] },
                 ],
             },
@@ -225,7 +225,7 @@ function CustomerMenuContent() {
         setPopup({
             id: 'welcome',
             type: 'welcome',
-            title: 'Welcome! 🎉',
+            title: 'Welcome!',
             description: tableNumber
                 ? `Table ${tableNumber} - Browse our menu and add items to your order.`
                 : 'Browse our menu and discover today\'s specials.',
@@ -857,19 +857,19 @@ function CustomerMenuContent() {
                                 className="w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2"
                                 style={{ backgroundColor: colorScheme.secondary }}
                             >
-                                <span>💳</span> Credit Card
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="2" y="5" width="20" height="14" rx="2" strokeWidth="2" /><path d="M2 10h20" strokeWidth="2" /></svg> Credit Card
                             </button>
                             <button
                                 className="w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2"
                                 style={{ backgroundColor: colorScheme.secondary }}
                             >
-                                <span>📱</span> Apple Pay
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="5" y="2" width="14" height="20" rx="2" strokeWidth="2" /><circle cx="12" cy="18" r="1" fill="currentColor" /></svg> Apple Pay
                             </button>
                             <button
                                 className="w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2"
                                 style={{ backgroundColor: colorScheme.secondary }}
                             >
-                                <span>💵</span> Cash on Table
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="1" y="6" width="22" height="12" rx="1" strokeWidth="2" /><circle cx="12" cy="12" r="3" strokeWidth="2" /></svg> Cash on Table
                             </button>
                         </div>
 
@@ -908,7 +908,7 @@ function CustomerMenuContent() {
                             </svg>
                         </div>
 
-                        <h2 className="text-xl font-bold mb-2">Order Confirmed! 🎉</h2>
+                        <h2 className="text-xl font-bold mb-2">Order Confirmed!</h2>
                         <p className="text-sm opacity-70 mb-6">
                             Your order has been received. We'll prepare it right away!
                             {tableNumber && <><br />It will be served at Table {tableNumber}.</>}

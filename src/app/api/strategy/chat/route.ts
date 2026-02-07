@@ -161,7 +161,7 @@ function handleDesignModification(
         if (color) {
             updatedStrategy.layout.colorScheme.accent = color;
             modified = true;
-            responseText = `✨ **Accent color updated to ${color}!**\n\nThe new accent color will be applied to highlights, badges, and call-to-action elements. This creates visual emphasis on your key items.`;
+            responseText = `**Accent color updated to ${color}!**\n\nThe new accent color will be applied to highlights, badges, and call-to-action elements. This creates visual emphasis on your key items.`;
         }
     }
 
@@ -170,7 +170,7 @@ function handleDesignModification(
         if (color) {
             updatedStrategy.layout.colorScheme.background = color;
             modified = true;
-            responseText = `🎨 **Background color updated to ${color}!**\n\nThe menu background has been changed. Make sure there's enough contrast with your text for readability.`;
+            responseText = `**Background color updated to ${color}!**\n\nThe menu background has been changed. Make sure there's enough contrast with your text for readability.`;
         }
     }
 
@@ -179,7 +179,7 @@ function handleDesignModification(
         if (color) {
             updatedStrategy.layout.colorScheme.primary = color;
             modified = true;
-            responseText = `🎨 **Primary color updated to ${color}!**\n\nThis affects the main card backgrounds and section styling.`;
+            responseText = `**Primary color updated to ${color}!**\n\nThis affects the main card backgrounds and section styling.`;
         }
     }
 
@@ -190,7 +190,7 @@ function handleDesignModification(
             const palette = COLOR_PALETTES[paletteName as keyof typeof COLOR_PALETTES];
             updatedStrategy.layout.colorScheme = { ...palette };
             modified = true;
-            responseText = `🎨 **Applied "${paletteName}" color palette!**\n\n• Primary: ${palette.primary}\n• Accent: ${palette.accent}\n• Background: ${palette.background}\n\nThis gives your menu a cohesive ${paletteName} look.`;
+            responseText = `**Applied "${paletteName}" color palette!**\n\n• Primary: ${palette.primary}\n• Accent: ${palette.accent}\n• Background: ${palette.background}\n\nThis gives your menu a cohesive ${paletteName} look.`;
             break;
         }
     }
@@ -200,28 +200,28 @@ function handleDesignModification(
         updatedStrategy.layout.columns = 1;
         updatedStrategy.layout.type = 'list';
         modified = true;
-        responseText = `📱 **Switched to single column layout!**\n\nThis layout is:\n• Optimal for mobile viewing\n• Creates a focused, linear flow\n• Ensures every item is seen in order\n\nPerfect for price anchoring strategy.`;
+        responseText = `**Switched to single column layout!**\n\nThis layout is:\n• Optimal for mobile viewing\n• Creates a focused, linear flow\n• Ensures every item is seen in order\n\nPerfect for price anchoring strategy.`;
     }
 
     if (lowerMessage.includes('two column') || lowerMessage.includes('2 column') || lowerMessage.match(/\b2\s*col/)) {
         updatedStrategy.layout.columns = 2;
         updatedStrategy.layout.type = 'grid';
         modified = true;
-        responseText = `📊 **Switched to two column grid!**\n\nThis layout:\n• Maximizes screen real estate\n• Creates natural comparison pairs\n• Works great for visual menus with photos`;
+        responseText = `**Switched to two column grid!**\n\nThis layout:\n• Maximizes screen real estate\n• Creates natural comparison pairs\n• Works great for visual menus with photos`;
     }
 
     if (lowerMessage.includes('three column') || lowerMessage.includes('3 column') || lowerMessage.match(/\b3\s*col/)) {
         updatedStrategy.layout.columns = 3;
         updatedStrategy.layout.type = 'grid';
         modified = true;
-        responseText = `📊 **Switched to three column grid!**\n\nThis layout is ideal for:\n• Decoy pricing display (good/better/best)\n• Quick visual scanning\n• Showing many items at once`;
+        responseText = `**Switched to three column grid!**\n\nThis layout is ideal for:\n• Decoy pricing display (good/better/best)\n• Quick visual scanning\n• Showing many items at once`;
     }
 
     if (lowerMessage.includes('magazine')) {
         updatedStrategy.layout.type = 'magazine';
         updatedStrategy.layout.columns = 2;
         modified = true;
-        responseText = `📰 **Switched to magazine layout!**\n\nThis elegant layout:\n• Features hero items prominently\n• Uses the Golden Triangle eye-tracking pattern\n• Creates a premium, editorial feel`;
+        responseText = `**Switched to magazine layout!**\n\nThis elegant layout:\n• Features hero items prominently\n• Uses the Golden Triangle eye-tracking pattern\n• Creates a premium, editorial feel`;
     }
 
     // FONT CHANGES
@@ -232,7 +232,7 @@ function handleDesignModification(
             updatedStrategy.layout.typography.headingFont = fonts.heading;
             updatedStrategy.layout.typography.bodyFont = fonts.body;
             modified = true;
-            responseText = `✍️ **Applied "${fontName}" typography!**\n\n• Headings: ${fonts.heading}\n• Body: ${fonts.body}\n\nThis gives your menu a ${fontName} aesthetic.`;
+            responseText = `**Applied "${fontName}" typography!**\n\n• Headings: ${fonts.heading}\n• Body: ${fonts.body}\n\nThis gives your menu a ${fontName} aesthetic.`;
             break;
         }
     }
@@ -252,7 +252,7 @@ function handleDesignModification(
                             item.isHighlighted = true;
                         }
                         found = true;
-                        responseText = `🏷️ **Added "${badgeType}" badge to ${item.name}!**\n\nThis item will now stand out with social proof, increasing its selection rate by up to 30%.`;
+                        responseText = `**Added "${badgeType}" badge to ${item.name}!**\n\nThis item will now stand out with social proof, increasing its selection rate by up to 30%.`;
                         break;
                     }
                 }
@@ -272,7 +272,7 @@ function handleDesignModification(
                         const newDesc = generateAppetizingDescription(item.name);
                         item.description = newDesc;
                         modified = true;
-                        responseText = `✏️ **Improved description for ${item.name}!**\n\n"${newDesc}"\n\nSensory language increases perceived value by up to 27%.`;
+                        responseText = `**Improved description for ${item.name}!**\n\n"${newDesc}"\n\nSensory language increases perceived value by up to 27%.`;
                         break;
                     }
                 }
@@ -286,7 +286,7 @@ function handleDesignModification(
                 }
             }
             modified = true;
-            responseText = `✏️ **Improved ${count} item descriptions!**\n\nAll descriptions now use sensory language and appetizing adjectives to increase perceived value.`;
+            responseText = `**Improved ${count} item descriptions!**\n\nAll descriptions now use sensory language and appetizing adjectives to increase perceived value.`;
         }
     }
 
@@ -299,10 +299,10 @@ function handleDesignModification(
                     if (item.name.toLowerCase().includes(itemName.toLowerCase())) {
                         item.isHighlighted = true;
                         if (item.badges.length === 0) {
-                            item.badges.push('⭐ Featured');
+                            item.badges.push('Featured');
                         }
                         modified = true;
-                        responseText = `✨ **${item.name} is now highlighted!**\n\nFeatured items get 2-3x more attention. This item will stand out in the layout with visual emphasis.`;
+                        responseText = `**${item.name} is now highlighted!**\n\nFeatured items get 2-3x more attention. This item will stand out in the layout with visual emphasis.`;
                         break;
                     }
                 }
@@ -314,13 +314,13 @@ function handleDesignModification(
     if (lowerMessage.includes('hide dollar') || lowerMessage.includes('remove dollar') || lowerMessage.includes('no dollar')) {
         updatedStrategy.layout.typography.priceStyle = 'hidden-dollar';
         modified = true;
-        responseText = `💰 **Removed dollar signs from prices!**\n\nResearch shows removing currency symbols reduces price sensitivity and increases spending by 8-12%.`;
+        responseText = `**Removed dollar signs from prices!**\n\nResearch shows removing currency symbols reduces price sensitivity and increases spending by 8-12%.`;
     }
 
     if (lowerMessage.includes('show dollar') || lowerMessage.includes('add dollar')) {
         updatedStrategy.layout.typography.priceStyle = 'bold';
         modified = true;
-        responseText = `💲 **Dollar signs restored!**\n\nPrices will now display with currency symbols for clarity.`;
+        responseText = `**Dollar signs restored!**\n\nPrices will now display with currency symbols for clarity.`;
     }
 
     if (!modified) {
@@ -402,13 +402,13 @@ function extractItemName(message: string): string | null {
 
 function extractBadgeType(message: string): string {
     if (message.includes('chef') || message.includes('pick')) return "Chef's Pick";
-    if (message.includes('popular') || message.includes('best seller')) return '🔥 Popular';
-    if (message.includes('new')) return '✨ New';
-    if (message.includes('spicy')) return '🌶️ Spicy';
-    if (message.includes('vegetarian') || message.includes('veg')) return '🥬 Vegetarian';
-    if (message.includes('limited')) return '⏰ Limited Time';
-    if (message.includes('recommended')) return '👍 Recommended';
-    return '⭐ Featured';
+    if (message.includes('popular') || message.includes('best seller')) return 'Popular';
+    if (message.includes('new')) return 'New';
+    if (message.includes('spicy')) return 'Spicy';
+    if (message.includes('vegetarian') || message.includes('veg')) return 'Vegetarian';
+    if (message.includes('limited')) return 'Limited Time';
+    if (message.includes('recommended')) return 'Recommended';
+    return 'Featured';
 }
 
 function generateAppetizingDescription(itemName: string): string {
@@ -511,11 +511,11 @@ function getSmartFallbackResponse(message: string, strategy?: MenuStrategy): str
     const lowerMessage = message.toLowerCase();
 
     if (lowerMessage.includes('hello') || lowerMessage.includes('hi')) {
-        return `👋 Hello! I'm your Menu Design Assistant.\n\nI can help you customize your ${strategy?.name || ''} menu layout. Try asking me to:\n• Change colors\n• Modify the layout\n• Add badges to items\n• Explain design choices\n\nWhat would you like to do?`;
+        return `Hello! I'm your Menu Design Assistant.\n\nI can help you customize your ${strategy?.name || ''} menu layout. Try asking me to:\n• Change colors\n• Modify the layout\n• Add badges to items\n• Explain design choices\n\nWhat would you like to do?`;
     }
 
     if (lowerMessage.includes('help')) {
-        return `**I can help you with:**\n\n🎨 **Colors** - "Change accent to blue", "Use dark palette"\n📐 **Layout** - "Single column", "Magazine style", "3 columns"\n✍️ **Typography** - "Elegant fonts", "Hide dollar signs"\n🏷️ **Badges** - "Add Chef's Pick to [item]"\n✏️ **Descriptions** - "Improve all descriptions"\n\n**Current Setup:**\n• Strategy: ${strategy?.name || 'None'}\n• Layout: ${strategy?.layout.type || 'Grid'}\n• Columns: ${strategy?.layout.columns || 2}`;
+        return `**I can help you with:**\n\n**Colors** - "Change accent to blue", "Use dark palette"\n**Layout** - "Single column", "Magazine style", "3 columns"\n**Typography** - "Elegant fonts", "Hide dollar signs"\n**Badges** - "Add Chef's Pick to [item]"\n**Descriptions** - "Improve all descriptions"\n\n**Current Setup:**\n• Strategy: ${strategy?.name || 'None'}\n• Layout: ${strategy?.layout.type || 'Grid'}\n• Columns: ${strategy?.layout.columns || 2}`;
     }
 
     if (lowerMessage.includes('strategy') || lowerMessage.includes('explain')) {

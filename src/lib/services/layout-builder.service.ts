@@ -1,5 +1,15 @@
 import { MenuStrategy, LayoutSection, LayoutItem } from './strategy.service';
 
+export interface MenuContext {
+  restaurantName?: string;
+  tagline?: string;
+  extractedColors?: {
+    dominant?: string;
+    accent?: string;
+    background?: string;
+  };
+}
+
 export interface BuiltLayout {
   id: string;
   strategyId: string;
@@ -35,17 +45,17 @@ export class LayoutBuilderAgent {
   /**
    * Build a complete layout from a strategy
    */
-  static async buildLayout(strategy: MenuStrategy, experimentId?: string): Promise<BuiltLayout> {
+  static async buildLayout(strategy: MenuStrategy, experimentId?: string, context?: MenuContext): Promise<BuiltLayout> {
     const { layout } = strategy;
 
     // Apply menu engineering rules to sections
     const optimizedSections = this.applyMenuEngineeringRules(layout.sections);
 
-    // Generate CSS based on strategy
-    const css = this.generateCSS(layout);
+    // Generate CSS based on strategy (with contrast-safe colors)
+    const css = this.generateCSS(layout, context?.extractedColors);
 
     // Generate HTML structure with optimized sections
-    const html = this.generateHTML({ ...layout, sections: optimizedSections }, strategy.name);
+    const html = this.generateHTML({ ...layout, sections: optimizedSections }, strategy.name, context);
 
     return {
       id: `layout-${Date.now()}`,
@@ -122,16 +132,28 @@ export class LayoutBuilderAgent {
    * - Clear CTA buttons
    * - Easy navigation
    * - Mobile-first design
+   * - Guaranteed text contrast for readability
    */
-  private static generateCSS(layout: MenuStrategy['layout']): string {
+  private static generateCSS(layout: MenuStrategy['layout'], extractedColors?: MenuContext['extractedColors']): string {
     const { colorScheme, typography, type, columns } = layout;
+
+    // Use extracted colors if available, otherwise use strategy colors
+    const background = extractedColors?.background || colorScheme.background;
+    const accent = extractedColors?.accent || colorScheme.accent;
+    const primary = extractedColors?.dominant || colorScheme.primary;
+
+    // Ensure proper text contrast - calculate if background is dark or light
+    const textColor = this.getContrastingTextColor(background);
+    const secondaryTextColor = textColor === '#ffffff' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)';
 
     return `
 :root {
-  --primary: ${colorScheme.primary};
+  --primary: ${primary};
   --secondary: ${colorScheme.secondary};
-  --accent: ${colorScheme.accent};
-  --background: ${colorScheme.background};
+  --accent: ${accent};
+  --background: ${background};
+  --text-color: ${textColor};
+  --text-secondary: ${secondaryTextColor};
   --heading-font: '${typography.headingFont}', serif;
   --body-font: '${typography.bodyFont}', sans-serif;
 }
@@ -142,7 +164,7 @@ export class LayoutBuilderAgent {
   min-height: 100vh;
   padding: 1rem;
   font-family: var(--body-font);
-  color: #fff;
+  color: var(--text-color);
   max-width: 100%;
   overflow-x: hidden;
 }
@@ -164,6 +186,11 @@ export class LayoutBuilderAgent {
   font-size: 2rem;
   color: var(--accent);
   margin-bottom: 0.5rem;
+  text-shadow: ${textColor === '#ffffff' ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'};
+}
+
+.menu-header p {
+  color: var(--text-secondary);
 }
 
 .menu-section {
@@ -199,6 +226,7 @@ export class LayoutBuilderAgent {
   padding: 1.25rem;
   transition: transform 0.2s, box-shadow 0.2s;
   position: relative;
+  color: var(--text-color);
 }
 
 @media (min-width: 768px) {
@@ -258,6 +286,7 @@ export class LayoutBuilderAgent {
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 600;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.2);
 }
 
 .item-name {
@@ -265,10 +294,11 @@ export class LayoutBuilderAgent {
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
+  color: var(--text-color);
 }
 
 .item-description {
-  color: rgba(255,255,255,0.7);
+  color: var(--text-secondary);
   font-size: 0.9rem;
   margin-bottom: 1rem;
   line-height: 1.5;
@@ -277,7 +307,7 @@ export class LayoutBuilderAgent {
 .item-price {
   font-size: 1.5rem;
   font-weight: ${typography.priceStyle === 'bold' ? '700' : '400'};
-  color: ${typography.priceStyle === 'subtle' ? 'rgba(255,255,255,0.8)' : 'var(--accent)'};
+  color: ${typography.priceStyle === 'subtle' ? 'var(--text-secondary)' : 'var(--accent)'};
 }
 
 .item-price.hidden-dollar::before {
@@ -289,6 +319,23 @@ ${type === 'magazine' ? this.getMagazineStyles() : ''}
 ${type === 'list' ? this.getListStyles() : ''}
 ${type === 'minimal' ? this.getMinimalStyles() : ''}
 `;
+  }
+
+  /**
+   * Calculate contrasting text color based on background
+   */
+  private static getContrastingTextColor(backgroundColor: string): string {
+    // Convert hex to RGB
+    const hex = backgroundColor.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16) || 0;
+    const g = parseInt(hex.substring(2, 4), 16) || 0;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+
+    // Calculate relative luminance
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+    // Return white for dark backgrounds, dark for light backgrounds
+    return luminance > 0.5 ? '#1a1a1a' : '#ffffff';
   }
 
   /**
@@ -353,7 +400,7 @@ ${type === 'minimal' ? this.getMinimalStyles() : ''}
   /**
    * Generate HTML structure
    */
-  private static generateHTML(layout: MenuStrategy['layout'], strategyName: string): string {
+  private static generateHTML(layout: MenuStrategy['layout'], strategyName: string, context?: MenuContext): string {
     const sectionsHTML = layout.sections
       .map(
         (section) => `
@@ -367,11 +414,15 @@ ${type === 'minimal' ? this.getMinimalStyles() : ''}
       )
       .join('\n');
 
+    // Use restaurant name if available, otherwise use "Our Menu"
+    const menuTitle = context?.restaurantName || 'Our Menu';
+    const tagline = context?.tagline || 'Crafted with care';
+
     return `
 <div class="menu-container" data-strategy="${strategyName.toLowerCase().replace(/\s+/g, '-')}">
   <header class="menu-header">
-    <h1>Our Menu</h1>
-    <p>Crafted with care</p>
+    <h1>${menuTitle}</h1>
+    <p>${tagline}</p>
   </header>
   ${sectionsHTML}
 </div>

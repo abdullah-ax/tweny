@@ -84,7 +84,7 @@ export default function DeployPage() {
             setChatMessages(prev => [...prev, {
                 id: Date.now().toString(),
                 role: 'assistant',
-                content: `↩️ **Undone:** Reverted to "${prevState.description}"`,
+                content: `**Undone:** Reverted to "${prevState.description}"`,
                 timestamp: new Date(),
             }]);
         }
@@ -100,7 +100,7 @@ export default function DeployPage() {
             setChatMessages(prev => [...prev, {
                 id: Date.now().toString(),
                 role: 'assistant',
-                content: `↪️ **Redone:** Applied "${nextState.description}"`,
+                content: `**Redone:** Applied "${nextState.description}"`,
                 timestamp: new Date(),
             }]);
         }
@@ -166,7 +166,7 @@ export default function DeployPage() {
                 };
                 setMenuContext(ctx as any);
                 sessionStorage.setItem('menuContext', JSON.stringify(ctx));
-                console.log('📥 Loaded context from database');
+                console.log('Loaded context from database');
             }
         } catch (e) {
             console.error('Failed to load context from database:', e);
@@ -174,7 +174,27 @@ export default function DeployPage() {
     };
 
     const initializeLayout = async (strat: MenuStrategy) => {
-        const layout = await LayoutBuilderAgent.buildLayout(strat);
+        // Get context to pass restaurant name and colors
+        const contextStored = sessionStorage.getItem('menuContext');
+        let ctx: MenuContext | null = null;
+        if (contextStored) {
+            try {
+                ctx = JSON.parse(contextStored);
+                setMenuContext(ctx);
+            } catch (e) {
+                console.error('Failed to parse menu context:', e);
+            }
+        }
+
+        // Build layout with context for restaurant name and extracted colors
+        const layout = await LayoutBuilderAgent.buildLayout(strat, undefined, ctx ? {
+            restaurantName: ctx.restaurantName,
+            extractedColors: ctx.extractedColors ? {
+                dominant: ctx.extractedColors.dominant,
+                accent: ctx.extractedColors.accent,
+                background: ctx.extractedColors.background,
+            } : undefined,
+        } : undefined);
         setCurrentHtml(layout.html);
         setCurrentCss(layout.css);
         setLayoutId(layout.id);
@@ -188,38 +208,31 @@ export default function DeployPage() {
         }]);
         setHistoryIndex(0);
 
-        // Load context for welcome message
-        const contextStored = sessionStorage.getItem('menuContext');
+        // Welcome message
         let welcomeContext = '';
-        if (contextStored) {
-            try {
-                const ctx = JSON.parse(contextStored) as MenuContext;
-                setMenuContext(ctx);
-                welcomeContext = `\n\n**📊 I have access to your data:**\n• ${ctx.items?.length || 0} menu items from your PDF\n• ${ctx.salesData ? `Sales data (${ctx.salesData.totalOrders} orders, $${ctx.salesData.totalRevenue?.toFixed(0)} revenue)` : 'No sales data uploaded'}\n• ${ctx.extractedColors ? `Original colors: ${ctx.extractedColors.dominant}` : 'Default colors'}\n• ${ctx.menuEngineering ? `Menu engineering: ${ctx.menuEngineering.stars?.length || 0} stars, ${ctx.menuEngineering.dogs?.length || 0} dogs` : ''}\n\nI'll use this data to make smart design suggestions!`;
-            } catch (e) {
-                console.error('Failed to parse context:', e);
-            }
+        if (ctx) {
+            welcomeContext = `\n\n**I have access to your data:**\n• ${ctx.items?.length || 0} menu items from your PDF\n• ${ctx.salesData ? `Sales data (${ctx.salesData.totalOrders} orders, $${ctx.salesData.totalRevenue?.toFixed(0)} revenue)` : 'No sales data uploaded'}\n• ${ctx.extractedColors ? `Original colors: ${ctx.extractedColors.dominant}` : 'Default colors'}\n• ${ctx.menuEngineering ? `Menu engineering: ${ctx.menuEngineering.stars?.length || 0} stars, ${ctx.menuEngineering.dogs?.length || 0} dogs` : ''}\n\nI'll use this data to make smart design suggestions!`;
         }
 
         setChatMessages([{
             id: '0',
             role: 'assistant',
-            content: `🍽️ **Welcome to the Menu Design Studio!**
+            content: `**Welcome to the Menu Design Studio!**
 
 I'm your AI menu engineering specialist. I'll help you create a **mobile-optimized, high-converting menu** with built-in ordering functionality.${welcomeContext}
 
-**📱 What makes this menu special:**
+**What makes this menu special:**
 • Optimized for phones (touch-friendly, fast loading)
 • Built-in cart & checkout functionality
 • Menu engineering principles applied automatically
 • Highlights your most profitable items
 
-**💡 How I work:**
+**How I work:**
 1. I'll ask clarifying questions to understand your vision
 2. I'll propose a plan for your approval
 3. Once approved, I'll implement the changes
 
-**🔧 You can always undo changes** using the ↩️ button!
+**You can always undo changes** using the undo button!
 
 Tell me what you'd like to change about your menu design.`,
             timestamp: new Date(),
@@ -572,7 +585,7 @@ Tell me what you'd like to change about your menu design.`,
             setChatMessages(prev => [...prev, {
                 id: Date.now().toString(),
                 role: 'assistant',
-                content: `🚀 **Menu deployed!** (v${deployData.version})\n\nYour QR code is ready. Customers can now scan it to view your custom-designed menu.\n\n**Deployed to database:**\n• Layout ID: ${deployData.layoutId}\n• Version: ${deployData.version}\n• ${menuContext?.items?.length || 0} menu items\n• ${menuContext?.salesData ? 'Sales analytics active' : 'No sales data'}\n• ${menuContext?.extractedColors ? 'Original colors preserved' : 'Default colors'}\n\n📊 All orders will be tracked against this menu version for analytics!`,
+                content: `**Menu deployed!** (v${deployData.version})\n\nYour QR code is ready. Customers can now scan it to view your custom-designed menu.\n\n**Deployed to database:**\n• Layout ID: ${deployData.layoutId}\n• Version: ${deployData.version}\n• ${menuContext?.items?.length || 0} menu items\n• ${menuContext?.salesData ? 'Sales analytics active' : 'No sales data'}\n• ${menuContext?.extractedColors ? 'Original colors preserved' : 'Default colors'}\n\nAll orders will be tracked against this menu version for analytics!`,
                 timestamp: new Date(),
             }]);
         } catch (error) {
@@ -580,7 +593,7 @@ Tell me what you'd like to change about your menu design.`,
             setChatMessages(prev => [...prev, {
                 id: Date.now().toString(),
                 role: 'assistant',
-                content: `❌ **Deploy failed**\n\n${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
+                content: `**Deploy failed**\n\n${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
                 timestamp: new Date(),
             }]);
         } finally {
@@ -590,18 +603,18 @@ Tell me what you'd like to change about your menu design.`,
 
     // Dynamic quick prompts based on available context - focused on menu engineering
     const basePrompts = [
-        { icon: '📱', text: 'Optimize for mobile ordering' },
-        { icon: '⭐', text: 'Highlight profitable items' },
-        { icon: '💰', text: 'Apply decoy pricing layout' },
-        { icon: '👁️', text: 'Use Golden Triangle placement' },
+        { icon: 'mobile', text: 'Optimize for mobile ordering' },
+        { icon: 'star', text: 'Highlight profitable items' },
+        { icon: 'price', text: 'Apply decoy pricing layout' },
+        { icon: 'eye', text: 'Use Golden Triangle placement' },
     ];
 
     const quickPrompts = [
         ...basePrompts,
         // Add context-aware prompts
-        ...(menuContext?.extractedColors ? [{ icon: '🎨', text: 'Use my brand colors' }] : []),
-        ...(menuContext?.menuEngineering?.stars?.length ? [{ icon: '🌟', text: 'Feature my star items' }] : []),
-        ...(menuContext?.salesData ? [{ icon: '📊', text: 'Optimize based on sales' }] : []),
+        ...(menuContext?.extractedColors ? [{ icon: 'palette', text: 'Use my brand colors' }] : []),
+        ...(menuContext?.menuEngineering?.stars?.length ? [{ icon: 'sparkle', text: 'Feature my star items' }] : []),
+        ...(menuContext?.salesData ? [{ icon: 'chart', text: 'Optimize based on sales' }] : []),
     ].slice(0, 6); // Max 6 prompts
 
     if (!strategy) {
@@ -619,7 +632,7 @@ Tell me what you'd like to change about your menu design.`,
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-                            <span className="text-sm">�️</span>
+                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold text-white">Menu Engineering Studio</h1>
@@ -668,7 +681,7 @@ Tell me what you'd like to change about your menu design.`,
                         </>
                     ) : (
                         <Button onClick={handleDeploy} loading={deploying} size="sm">
-                            🚀 Deploy Menu
+                            Deploy Menu
                         </Button>
                     )}
                 </div>
@@ -733,7 +746,7 @@ Tell me what you'd like to change about your menu design.`,
                             <div className="flex items-center gap-2">
                                 <div className="relative">
                                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-sm">
-                                        🍽️
+                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                                     </div>
                                     <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border border-gray-900" />
                                 </div>
@@ -769,12 +782,12 @@ Tell me what you'd like to change about your menu design.`,
                                     {/* Mode indicator */}
                                     {msg.mode === 'plan' && (
                                         <div className="flex items-center gap-1 text-xs text-blue-400 mb-2">
-                                            <span>📋</span> Proposed Plan - Say "yes" to apply
+                                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg> Proposed Plan - Say "yes" to apply
                                         </div>
                                     )}
                                     {msg.mode === 'clarify' && (
                                         <div className="flex items-center gap-1 text-xs text-yellow-400 mb-2">
-                                            <span>❓</span> Clarifying Questions
+                                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Clarifying Questions
                                         </div>
                                     )}
 
@@ -789,7 +802,7 @@ Tell me what you'd like to change about your menu design.`,
                                                         : 'bg-green-500/20 border border-green-500/40'
                                                         }`}
                                                 >
-                                                    <span>{change.status === 'applying' ? '⚙️' : '✓'}</span>
+                                                    <span>{change.status === 'applying' ? '...' : '✓'}</span>
                                                     <span className="flex-1">{change.description}</span>
                                                 </div>
                                             ))}

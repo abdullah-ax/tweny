@@ -61,7 +61,7 @@ function trackUsage(inputTokens: number, outputTokens: number) {
     rateLimitState.totalOutputTokens += outputTokens;
     rateLimitState.requests.push(Date.now());
 
-    console.log(`💰 Cost: $${cost.toFixed(4)} | Total: $${rateLimitState.estimatedCostUsd.toFixed(2)}/$${BUDGET_LIMIT_USD} | Tokens: ${inputTokens}in/${outputTokens}out`);
+    console.log(`Cost: $${cost.toFixed(4)} | Total: $${rateLimitState.estimatedCostUsd.toFixed(2)}/$${BUDGET_LIMIT_USD} | Tokens: ${inputTokens}in/${outputTokens}out`);
 }
 
 /**
@@ -156,7 +156,7 @@ Respond with JSON ONLY - put updatedHtml and updatedCss FIRST:
 - Right-align prices or use leader dots for visual scanning
 
 ### 3. MENU ENGINEERING (BCG MATRIX)
-- **STARS** (high profit + high popularity): Place in Golden Triangle (top-right, center), use larger font, highlights, badges like "🔥 Popular" or "⭐ Chef's Pick"
+- **STARS** (high profit + high popularity): Place in Golden Triangle (top-right, center), use larger font, highlights, badges like "Popular" or "Chef's Pick"
 - **CASH COWS** (low profit + high popularity): Position prominently but don't over-emphasize, use for volume
 - **PUZZLES** (high profit + low popularity): Give prime placement, add descriptions, use "Hidden Gem" or "Try Something New" badges
 - **DOGS** (low profit + low popularity): De-emphasize with smaller text, consider hiding or removing
@@ -214,7 +214,7 @@ function repairTruncatedJson(jsonStr: string, currentHtml: string, currentCss: s
 
     // If unbalanced, try to fix
     if (openBraces !== closeBraces || openBrackets !== closeBrackets) {
-        console.log('⚠️ Detected truncated JSON, attempting repair...');
+        console.log('Detected truncated JSON, attempting repair...');
         wasTruncated = true;
 
         // Remove trailing incomplete strings/values
@@ -246,11 +246,11 @@ function ensureResponseFields(result: Record<string, unknown>, currentHtml: stri
     // Ensure HTML/CSS exist - use current if missing or empty
     if (!result.updatedHtml || (typeof result.updatedHtml === 'string' && result.updatedHtml.trim() === '')) {
         result.updatedHtml = currentHtml;
-        console.log('⚠️ Missing updatedHtml, using current HTML');
+        console.log('Missing updatedHtml, using current HTML');
     }
     if (!result.updatedCss || (typeof result.updatedCss === 'string' && result.updatedCss.trim() === '')) {
         result.updatedCss = currentCss;
-        console.log('⚠️ Missing updatedCss, using current CSS');
+        console.log('Missing updatedCss, using current CSS');
     }
 
     // Ensure changes array exists
@@ -412,7 +412,7 @@ Now analyze the request and return the JSON response with your changes.`;
                     const rateLimitCheck = checkRateLimit();
                     if (!rateLimitCheck.allowed) {
                         sendEvent('error', {
-                            message: `⏳ ${rateLimitCheck.reason}\n\n💡 Budget: $${rateLimitState.estimatedCostUsd.toFixed(2)}/$${BUDGET_LIMIT_USD} used`
+                            message: `${rateLimitCheck.reason}\n\nBudget: $${rateLimitState.estimatedCostUsd.toFixed(2)}/$${BUDGET_LIMIT_USD} used`
                         });
                         controller.close();
                         return;
@@ -459,7 +459,7 @@ Now analyze the request and return the JSON response with your changes.`;
 
                             if (!response.ok) {
                                 const errorText = await response.text();
-                                console.log(`❌ ${model} failed: ${response.status}`);
+                                console.log(`${model} failed: ${response.status}`);
                                 lastError = new Error(`${model}: ${response.status} - ${errorText.slice(0, 100)}`);
                                 continue; // Try next model
                             }
@@ -478,11 +478,11 @@ Now analyze the request and return the JSON response with your changes.`;
                                 continue;
                             }
 
-                            console.log(`✅ ${model} succeeded!`);
+                            console.log(`${model} succeeded!`);
                             winningResponse = { model, content };
                             break; // Success, stop trying
                         } catch (err) {
-                            console.log(`❌ ${model} error:`, err);
+                            console.log(`${model} error:`, err);
                             lastError = err;
                             continue;
                         }
@@ -546,7 +546,7 @@ Now analyze the request and return the JSON response with your changes.`;
                                     sendEvent('complete', {
                                         success: true,
                                         mode: 'plan',
-                                        summary: `📋 **Here's my plan:**\n\n${result.plan.summary}\n\n**Changes I'll make:**\n${result.plan.changes.map((c: string) => `• ${c}`).join('\n')}\n\n**Reasoning:** ${result.plan.reasoning}\n\n👉 *Say "yes" or "go ahead" to apply these changes, or tell me what to adjust.*`,
+                                        summary: `**Here's my plan:**\n\n${result.plan.summary}\n\n**Changes I'll make:**\n${result.plan.changes.map((c: string) => `• ${c}`).join('\n')}\n\n**Reasoning:** ${result.plan.reasoning}\n\n*Say "yes" or "go ahead" to apply these changes, or tell me what to adjust.*`,
                                         updatedHtml: currentHtml,
                                         updatedCss: currentCss,
                                     });
@@ -857,7 +857,7 @@ function handleLocalDesignRequest(message: string, html: string, css: string, me
   position: relative;
 }
 .menu-item[data-bcg="star"]::before, .menu-item.star-item::before {
-  content: "⭐ Popular";
+  content: "Popular";
   position: absolute;
   top: -10px;
   left: 10px;

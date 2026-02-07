@@ -52,17 +52,17 @@ export default function EditorSidebar({ sections }: EditorSidebarProps) {
     };
 
     const tabs = [
-        { id: 'items', label: 'Menu Items', icon: '🍽️' },
-        { id: 'elements', label: 'Elements', icon: '🧩' },
-        { id: 'templates', label: 'Templates', icon: '📋' },
+        { id: 'items', label: 'Menu Items', icon: 'menu' },
+        { id: 'elements', label: 'Elements', icon: 'elements' },
+        { id: 'templates', label: 'Templates', icon: 'templates' },
     ];
 
     const elementTypes = [
         { type: 'text', label: 'Text', icon: 'T', data: { text: 'New Text' } },
         { type: 'section', label: 'Section Header', icon: '📑', data: { title: 'Section' } },
-        { type: 'badge', label: 'Badge', icon: '🏷️', data: { label: 'Popular', variant: 'popular' } },
+        { type: 'badge', label: 'Badge', icon: 'tag', data: { label: 'Popular', variant: 'popular' } },
         { type: 'divider', label: 'Divider', icon: '—', data: {} },
-        { type: 'image', label: 'Image', icon: '🖼️', data: {} },
+        { type: 'image', label: 'Image', icon: 'image', data: {} },
     ];
 
     const templates = [
@@ -80,8 +80,8 @@ export default function EditorSidebar({ sections }: EditorSidebarProps) {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
                         className={`flex-1 px-3 py-3 text-xs font-medium transition-colors ${activeTab === tab.id
-                                ? 'text-white border-b-2 border-orange-500'
-                                : 'text-gray-400 hover:text-white'
+                            ? 'text-white border-b-2 border-orange-500'
+                            : 'text-gray-400 hover:text-white'
                             }`}
                     >
                         <span className="mr-1">{tab.icon}</span>
@@ -129,9 +129,9 @@ export default function EditorSidebar({ sections }: EditorSidebarProps) {
                                                 </div>
                                                 {item.bcgQuadrant && (
                                                     <span className={`inline-block mt-1 px-1.5 py-0.5 text-xs rounded ${item.bcgQuadrant === 'star' ? 'bg-yellow-500/20 text-yellow-400' :
-                                                            item.bcgQuadrant === 'cash_cow' ? 'bg-green-500/20 text-green-400' :
-                                                                item.bcgQuadrant === 'question_mark' ? 'bg-purple-500/20 text-purple-400' :
-                                                                    'bg-red-500/20 text-red-400'
+                                                        item.bcgQuadrant === 'cash_cow' ? 'bg-green-500/20 text-green-400' :
+                                                            item.bcgQuadrant === 'question_mark' ? 'bg-purple-500/20 text-purple-400' :
+                                                                'bg-red-500/20 text-red-400'
                                                         }`}>
                                                         {item.bcgQuadrant}
                                                     </span>
@@ -174,10 +174,10 @@ export default function EditorSidebar({ sections }: EditorSidebarProps) {
                             <h4 className="text-xs font-medium text-gray-400 mb-3">Badges</h4>
                             <div className="flex flex-wrap gap-2">
                                 {[
-                                    { label: '🔥 Popular', variant: 'popular' },
-                                    { label: '🆕 New', variant: 'new' },
-                                    { label: '👨‍🍳 Chef\'s Pick', variant: 'chef' },
-                                    { label: '🌱 Vegan', variant: 'vegan' },
+                                    { label: 'Popular', variant: 'popular' },
+                                    { label: 'New', variant: 'new' },
+                                    { label: "Chef's Pick", variant: 'chef' },
+                                    { label: 'Vegan', variant: 'vegan' },
                                 ].map((badge) => (
                                     <button
                                         key={badge.variant}
@@ -210,7 +210,7 @@ export default function EditorSidebar({ sections }: EditorSidebarProps) {
                         <div className="mt-6 pt-4 border-t border-gray-800">
                             <h4 className="text-xs font-medium text-gray-400 mb-3">AI Suggestions</h4>
                             <button className="w-full p-3 bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/30 rounded-lg hover:border-orange-500/50 transition-colors text-left">
-                                <h4 className="text-sm font-medium text-orange-400">✨ Generate Optimal Layout</h4>
+                                <h4 className="text-sm font-medium text-orange-400">Generate Optimal Layout</h4>
                                 <p className="text-xs text-gray-400 mt-1">
                                     AI will create a layout based on your analytics data
                                 </p>

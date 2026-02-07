@@ -292,16 +292,16 @@ const COLOR_MAP: Record<string, string> = {
     gray: '#6b7280', grey: '#6b7280',
 };
 
-// Badge emoji mapping
-const BADGE_EMOJIS: Record<string, string> = {
-    "Chef's Pick": "👨‍🍳 Chef's Pick",
-    'Popular': '🔥 Popular',
-    'New': '✨ New',
-    'Spicy': '🌶️ Spicy',
-    'Vegetarian': '🥬 Vegetarian',
-    'Limited Time': '⏰ Limited Time',
-    'Recommended': '👍 Recommended',
-    'Best Value': '💎 Best Value',
+// Badge mapping (text only)
+const BADGE_LABELS: Record<string, string> = {
+    "Chef's Pick": "Chef's Pick",
+    'Popular': 'Popular',
+    'New': 'New',
+    'Spicy': 'Spicy',
+    'Vegetarian': 'Vegetarian',
+    'Limited Time': 'Limited Time',
+    'Recommended': 'Recommended',
+    'Best Value': 'Best Value',
 };
 
 interface ToolAction {
@@ -566,7 +566,7 @@ function executeToolCall(
         case 'add_badge': {
             const itemName = (args.itemName as string).toLowerCase();
             const badgeType = args.badgeType as string;
-            const badge = BADGE_EMOJIS[badgeType] || `⭐ ${badgeType}`;
+            const badge = BADGE_LABELS[badgeType] || badgeType;
 
             for (const section of strat.layout.sections) {
                 for (const item of section.items) {
@@ -610,7 +610,7 @@ function executeToolCall(
                     if (item.name.toLowerCase().includes(itemName)) {
                         item.isHighlighted = highlighted;
                         if (highlighted && item.badges.length === 0) {
-                            item.badges.push('⭐ Featured');
+                            item.badges.push('Featured');
                         }
                         return { strategy: strat, message: `${highlighted ? 'Highlighted' : 'Unhighlighted'} ${item.name}`, success: true };
                     }
@@ -727,14 +727,14 @@ function generateActionSummary(actions: ToolAction[]): string {
     let summary = '';
 
     if (successful.length > 0) {
-        summary += '✅ **Changes Applied:**\n';
+        summary += '**Changes Applied:**\n';
         successful.forEach((a) => {
             summary += `• ${a.result}\n`;
         });
     }
 
     if (failed.length > 0) {
-        summary += '\n⚠️ **Could not complete:**\n';
+        summary += '\n**Could not complete:**\n';
         failed.forEach((a) => {
             summary += `• ${a.result}\n`;
         });
@@ -750,38 +750,38 @@ function getHelpResponse(message: string, strategy: unknown): string {
     const lower = message.toLowerCase();
 
     if (lower.includes('hello') || lower.includes('hi') || lower.includes('hey')) {
-        return `👋 Hello! I'm your Menu Design Agent powered by AI.
+        return `Hello! I'm your Menu Design Agent powered by AI.
 
 I can make any changes to your **${strat.name}** menu. Just tell me what you'd like:
 
-**🎨 Colors & Style**
+**Colors & Style**
 "Make the accent color blue" • "Use the ocean palette" • "Apply elegant typography"
 
-**📐 Layout**
+**Layout**
 "Switch to single column" • "Use magazine layout" • "Make it 3 columns"
 
-**🏷️ Items & Badges**
+**Items & Badges**
 "Add Chef's Pick to [item]" • "Highlight the pasta" • "Move steak to first"
 
-**✍️ Descriptions**
+**Descriptions**
 "Improve all descriptions" • "Make the burger description more appetizing"
 
-**💡 Smart Suggestions**
+**Smart Suggestions**
 "What should I change to increase sales?" • "Explain this strategy"
 
 What would you like to do?`;
     }
 
     if (lower.includes('help')) {
-        return `**🛠️ I can help you with:**
+        return `**I can help you with:**
 
-🎨 **Colors** - "Change accent to blue", "Apply dark palette"
-📐 **Layout** - "Single column", "Magazine style", "3 columns"
-✍️ **Typography** - "Elegant fonts", "Hide dollar signs"
-🏷️ **Badges** - "Add Chef's Pick to [item]", "Remove badges from [item]"
-📝 **Descriptions** - "Improve all descriptions", "Update [item] description"
-💰 **Prices** - "Change [item] price to $15"
-↕️ **Ordering** - "Move [item] to first position"
+**Colors** - "Change accent to blue", "Apply dark palette"
+**Layout** - "Single column", "Magazine style", "3 columns"
+**Typography** - "Elegant fonts", "Hide dollar signs"
+**Badges** - "Add Chef's Pick to [item]", "Remove badges from [item]"
+**Descriptions** - "Improve all descriptions", "Update [item] description"
+**Prices** - "Change [item] price to $15"
+**Ordering** - "Move [item] to first position"
 
 Just describe what you want in natural language!`;
     }
@@ -791,10 +791,10 @@ Just describe what you want in natural language!`;
 
 The **${strat.name}** strategy uses proven menu engineering principles:
 
-📍 **Strategic Placement** - High-margin items positioned where eyes naturally go
-🎯 **Visual Hierarchy** - Badges and highlights draw attention to key items
-💰 **Price Psychology** - Formatting reduces price sensitivity
-✨ **Sensory Language** - Descriptions that increase perceived value
+**Strategic Placement** - High-margin items positioned where eyes naturally go
+**Visual Hierarchy** - Badges and highlights draw attention to key items
+**Price Psychology** - Formatting reduces price sensitivity
+**Sensory Language** - Descriptions that increase perceived value
 
 This approach typically increases average order value by 12-18%.
 

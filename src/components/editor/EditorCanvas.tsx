@@ -145,14 +145,14 @@ export default function EditorCanvas({ onDrop }: EditorCanvasProps) {
                         </p>
                         {element.data?.bcgQuadrant ? (
                             <span className={`inline-block px-1.5 py-0.5 text-xs rounded mt-1 ${String(element.data.bcgQuadrant) === 'star' ? 'bg-yellow-500/20 text-yellow-400' :
-                                    String(element.data.bcgQuadrant) === 'cash_cow' ? 'bg-green-500/20 text-green-400' :
-                                        String(element.data.bcgQuadrant) === 'question_mark' ? 'bg-purple-500/20 text-purple-400' :
-                                            'bg-red-500/20 text-red-400'
+                                String(element.data.bcgQuadrant) === 'cash_cow' ? 'bg-green-500/20 text-green-400' :
+                                    String(element.data.bcgQuadrant) === 'question_mark' ? 'bg-purple-500/20 text-purple-400' :
+                                        'bg-red-500/20 text-red-400'
                                 }`}>
-                                {String(element.data.bcgQuadrant) === 'star' ? '⭐ Star' :
-                                    String(element.data.bcgQuadrant) === 'cash_cow' ? '🐄 Cash Cow' :
-                                        String(element.data.bcgQuadrant) === 'question_mark' ? '❓ Puzzle' :
-                                            '🐕 Dog'}
+                                {String(element.data.bcgQuadrant) === 'star' ? 'Star' :
+                                    String(element.data.bcgQuadrant) === 'cash_cow' ? 'Plowhorse' :
+                                        String(element.data.bcgQuadrant) === 'question_mark' ? 'Puzzle' :
+                                            'Dog'}
                             </span>
                         ) : null}
                     </div>
@@ -181,9 +181,9 @@ export default function EditorCanvas({ onDrop }: EditorCanvasProps) {
 
                 {element.type === 'badge' && (
                     <div className={`px-3 py-1 rounded-full text-sm font-medium ${element.data?.variant === 'popular' ? 'bg-orange-500 text-white' :
-                            element.data?.variant === 'new' ? 'bg-green-500 text-white' :
-                                element.data?.variant === 'chef' ? 'bg-purple-500 text-white' :
-                                    'bg-gray-600 text-white'
+                        element.data?.variant === 'new' ? 'bg-green-500 text-white' :
+                            element.data?.variant === 'chef' ? 'bg-purple-500 text-white' :
+                                'bg-gray-600 text-white'
                         }`}>
                         {(element.data?.label as string) || 'Badge'}
                     </div>

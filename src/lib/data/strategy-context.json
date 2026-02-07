@@ -5,7 +5,7 @@
     "menuEngineering": {
         "quadrants": {
             "stars": {
-                "icon": "⭐",
+                "icon": "star",
                 "label": "Stars",
                 "description": "High profit + High popularity",
                 "strategy": "Feature prominently at top of categories and in hero sections",
@@ -21,7 +21,7 @@
                 ]
             },
             "plowhorses": {
-                "icon": "🧩",
+                "icon": "puzzle",
                 "label": "Plowhorses",
                 "description": "Low profit + High popularity",
                 "strategy": "Adjust pricing, reduce portion size, or bundle with high-margin items",
@@ -35,7 +35,7 @@
                 ]
             },
             "puzzles": {
-                "icon": "❓",
+                "icon": "question",
                 "label": "Puzzles",
                 "description": "High profit + Low popularity",
                 "strategy": "Improve visibility with better descriptions, photos, and premium positioning",
@@ -51,7 +51,7 @@
                 ]
             },
             "dogs": {
-                "icon": "🐶",
+                "icon": "dog",
                 "label": "Dogs",
                 "description": "Low profit + Low popularity",
                 "strategy": "Consider removing, hiding in 'More' section, or complete redesign",

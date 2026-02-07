@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Card, CardContent, Badge } from '@/components/ui';
+import { Card, CardContent, Badge, Button, Input } from '@/components/ui';
 
 interface Restaurant {
     id: number;
@@ -43,6 +43,116 @@ interface OrderAnalytics {
     recentOrders: Order[];
 }
 
+interface QuadrantSummary {
+    stars: number;
+    cashCows: number;
+    questionMarks: number;
+    dogs: number;
+    totalItems: number;
+}
+
+interface ChatMessage {
+    id: string;
+    role: 'user' | 'assistant';
+    content: string;
+    timestamp: Date;
+}
+
+interface AnalyticsItem {
+    menuItemId: number;
+    itemName: string;
+    totalRevenue: number;
+    totalQuantitySold: number;
+    grossMargin: number;
+    bcgQuadrant: string;
+}
+
+// SVG Pie Chart Component
+function PieChart({ data }: { data: QuadrantSummary }) {
+    const total = data.stars + data.cashCows + data.questionMarks + data.dogs;
+    if (total === 0) return null;
+
+    const segments = [
+        { label: 'Stars', value: data.stars, color: '#facc15' },  // Yellow
+        { label: 'Cash Cows', value: data.cashCows, color: '#22c55e' },  // Green
+        { label: 'Puzzles', value: data.questionMarks, color: '#3b82f6' },  // Blue
+        { label: 'Dogs', value: data.dogs, color: '#ef4444' },  // Red
+    ].filter(s => s.value > 0);
+
+    let currentAngle = 0;
+    const paths: { d: string; color: string; label: string; value: number; percentage: number }[] = [];
+
+    segments.forEach(segment => {
+        const percentage = (segment.value / total) * 100;
+        const angle = (segment.value / total) * 360;
+        const startAngle = currentAngle;
+        const endAngle = currentAngle + angle;
+
+        // Convert to radians
+        const startRad = (startAngle - 90) * (Math.PI / 180);
+        const endRad = (endAngle - 90) * (Math.PI / 180);
+
+        // Calculate arc points (center at 100,100, radius 80)
+        const x1 = 100 + 80 * Math.cos(startRad);
+        const y1 = 100 + 80 * Math.sin(startRad);
+        const x2 = 100 + 80 * Math.cos(endRad);
+        const y2 = 100 + 80 * Math.sin(endRad);
+
+        const largeArc = angle > 180 ? 1 : 0;
+
+        paths.push({
+            d: `M 100 100 L ${x1} ${y1} A 80 80 0 ${largeArc} 1 ${x2} ${y2} Z`,
+            color: segment.color,
+            label: segment.label,
+            value: segment.value,
+            percentage,
+        });
+
+        currentAngle = endAngle;
+    });
+
+    return (
+        <div className="flex flex-col md:flex-row items-center gap-6">
+            <svg viewBox="0 0 200 200" className="w-48 h-48 md:w-56 md:h-56">
+                {paths.map((path, i) => (
+                    <path
+                        key={i}
+                        d={path.d}
+                        fill={path.color}
+                        stroke="#1f1f1f"
+                        strokeWidth="2"
+                        className="transition-opacity hover:opacity-80"
+                    />
+                ))}
+                {/* Center hole for donut effect */}
+                <circle cx="100" cy="100" r="40" fill="#1f1f1f" />
+                <text x="100" y="95" textAnchor="middle" fill="white" fontSize="20" fontWeight="bold">
+                    {total}
+                </text>
+                <text x="100" y="115" textAnchor="middle" fill="#9ca3af" fontSize="12">
+                    items
+                </text>
+            </svg>
+            <div className="flex flex-col gap-3">
+                {paths.map((segment, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                        <div
+                            className="w-4 h-4 rounded"
+                            style={{ backgroundColor: segment.color }}
+                        />
+                        <div className="flex-1">
+                            <div className="text-white font-medium">{segment.label}</div>
+                            <div className="text-gray-400 text-sm">
+                                {segment.value} items ({segment.percentage.toFixed(0)}%)
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 function AnalyticsContent() {
     const searchParams = useSearchParams();
     const restaurantId = searchParams.get('restaurant');
@@ -50,8 +160,17 @@ function AnalyticsContent() {
     const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
     const [selectedRestaurant, setSelectedRestaurant] = useState<string>(restaurantId || '');
     const [orderAnalytics, setOrderAnalytics] = useState<OrderAnalytics | null>(null);
+    const [quadrantData, setQuadrantData] = useState<QuadrantSummary | null>(null);
+    const [analyticsItems, setAnalyticsItems] = useState<AnalyticsItem[]>([]);
     const [period, setPeriod] = useState<'7d' | '14d' | '30d'>('30d');
     const [loading, setLoading] = useState(true);
+
+    // Chat state
+    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+    const [chatInput, setChatInput] = useState('');
+    const [chatLoading, setChatLoading] = useState(false);
+    const [showChat, setShowChat] = useState(false);
+    const chatEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         fetchRestaurants();
@@ -60,6 +179,7 @@ function AnalyticsContent() {
     useEffect(() => {
         if (selectedRestaurant) {
             fetchOrderAnalytics();
+            fetchQuadrantData();
         }
     }, [selectedRestaurant, period]);
 
@@ -95,6 +215,117 @@ function AnalyticsContent() {
             }
         } catch (error) {
             console.error('Failed to fetch order analytics:', error);
+        }
+    };
+
+    const fetchQuadrantData = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const periodDays = period === '7d' ? 7 : period === '14d' ? 14 : 30;
+            const res = await fetch(`/api/restaurants/${selectedRestaurant}/analytics?period=${periodDays}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.summary) {
+                    setQuadrantData({
+                        stars: data.summary.stars || 0,
+                        cashCows: data.summary.cashCows || 0,
+                        questionMarks: data.summary.questionMarks || 0,
+                        dogs: data.summary.dogs || 0,
+                        totalItems: data.summary.totalItems || 0,
+                    });
+                }
+                if (data.items) {
+                    setAnalyticsItems(data.items);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch quadrant data:', error);
+        }
+    };
+
+    // Chat functionality
+    useEffect(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [chatMessages]);
+
+    const sendChatMessage = async () => {
+        if (!chatInput.trim() || chatLoading) return;
+
+        const userMessage: ChatMessage = {
+            id: Date.now().toString(),
+            role: 'user',
+            content: chatInput.trim(),
+            timestamp: new Date(),
+        };
+
+        setChatMessages(prev => [...prev, userMessage]);
+        setChatInput('');
+        setChatLoading(true);
+
+        try {
+            const token = localStorage.getItem('token');
+
+            // Build context for AI with real analytics data
+            const analyticsContext = {
+                summary: orderAnalytics?.summary,
+                quadrants: quadrantData,
+                topItems: orderAnalytics?.topItems?.slice(0, 5),
+                itemDetails: analyticsItems.slice(0, 20).map(item => ({
+                    name: item.itemName,
+                    revenue: item.totalRevenue,
+                    quantity: item.totalQuantitySold,
+                    margin: item.grossMargin,
+                    category: item.bcgQuadrant,
+                })),
+                period,
+            };
+
+            const prompt = `You are an analytics assistant for a restaurant. You have access to the following real data:
+
+ANALYTICS DATA:
+${JSON.stringify(analyticsContext, null, 2)}
+
+Answer the user's question based on this data. Be specific and reference actual items/numbers when possible. If asked about trends, profitability, or recommendations, use the quadrant classifications (star=high profit+popular, cash_cow=popular+lower margin, question_mark/puzzle=high margin+unpopular, dog=low both).
+
+User question: ${chatInput}`;
+
+            const res = await fetch('/api/agent/chat', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: prompt,
+                    restaurantId: Number(selectedRestaurant),
+                }),
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                const assistantMessage: ChatMessage = {
+                    id: (Date.now() + 1).toString(),
+                    role: 'assistant',
+                    content: data.response || 'Sorry, I could not process your request.',
+                    timestamp: new Date(),
+                };
+                setChatMessages(prev => [...prev, assistantMessage]);
+            } else {
+                throw new Error('Failed to get response');
+            }
+        } catch (error) {
+            console.error('Chat error:', error);
+            const errorMessage: ChatMessage = {
+                id: (Date.now() + 1).toString(),
+                role: 'assistant',
+                content: 'Sorry, there was an error processing your question. Please try again.',
+                timestamp: new Date(),
+            };
+            setChatMessages(prev => [...prev, errorMessage]);
+        } finally {
+            setChatLoading(false);
         }
     };
 
@@ -171,10 +402,47 @@ function AnalyticsContent() {
                         </Card>
                     </div>
 
+                    {/* Menu Performance Pie Chart */}
+                    {quadrantData && (quadrantData.stars > 0 || quadrantData.cashCows > 0 || quadrantData.questionMarks > 0 || quadrantData.dogs > 0) && (
+                        <Card>
+                            <CardContent>
+                                <h3 className="text-lg font-semibold text-white mb-4">Menu Performance by Category</h3>
+                                <p className="text-gray-400 text-sm mb-6">
+                                    Items are classified based on popularity and profitability
+                                </p>
+                                <PieChart data={quadrantData} />
+                                <div className="mt-6 pt-4 border-t border-gray-800">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                        <div>
+                                            <div className="text-yellow-400 font-bold text-xl">{quadrantData.stars}</div>
+                                            <div className="text-gray-400 text-sm">Stars</div>
+                                            <div className="text-gray-500 text-xs">High popularity & profit</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-green-400 font-bold text-xl">{quadrantData.cashCows}</div>
+                                            <div className="text-gray-400 text-sm">Cash Cows</div>
+                                            <div className="text-gray-500 text-xs">High popularity, lower margin</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-blue-400 font-bold text-xl">{quadrantData.questionMarks}</div>
+                                            <div className="text-gray-400 text-sm">Puzzles</div>
+                                            <div className="text-gray-500 text-xs">Low popularity, high margin</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-red-400 font-bold text-xl">{quadrantData.dogs}</div>
+                                            <div className="text-gray-400 text-sm">Dogs</div>
+                                            <div className="text-gray-500 text-xs">Low popularity & profit</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
                     {/* Top Items - What's selling */}
                     <Card>
                         <CardContent>
-                            <h3 className="text-lg font-semibold text-white mb-4">🔥 What's Selling</h3>
+                            <h3 className="text-lg font-semibold text-white mb-4">What's Selling</h3>
                             {orderAnalytics.topItems.length > 0 ? (
                                 <div className="space-y-3">
                                     {orderAnalytics.topItems.slice(0, 10).map((item, idx) => (
@@ -209,7 +477,7 @@ function AnalyticsContent() {
                     {/* Recent Orders */}
                     <Card>
                         <CardContent>
-                            <h3 className="text-lg font-semibold text-white mb-4">📋 Recent Orders</h3>
+                            <h3 className="text-lg font-semibold text-white mb-4">Recent Orders</h3>
                             {orderAnalytics.recentOrders && orderAnalytics.recentOrders.length > 0 ? (
                                 <div className="space-y-4">
                                     {orderAnalytics.recentOrders.slice(0, 10).map((order) => (
@@ -243,6 +511,95 @@ function AnalyticsContent() {
                             ) : (
                                 <div className="text-center py-8 text-gray-400">
                                     No orders yet
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Analytics Chat */}
+                    <Card>
+                        <CardContent>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-white">Ask About Your Data</h3>
+                                <Button
+                                    variant={showChat ? 'primary' : 'secondary'}
+                                    onClick={() => setShowChat(!showChat)}
+                                >
+                                    {showChat ? 'Hide Chat' : 'Open Chat'}
+                                </Button>
+                            </div>
+
+                            {showChat && (
+                                <div className="border border-gray-800 rounded-lg overflow-hidden">
+                                    {/* Chat Messages */}
+                                    <div className="h-80 overflow-y-auto p-4 space-y-4 bg-gray-900/50">
+                                        {chatMessages.length === 0 ? (
+                                            <div className="text-center text-gray-400 py-8">
+                                                <p className="mb-2">Ask questions about your analytics data:</p>
+                                                <div className="space-y-2 text-sm">
+                                                    <p className="text-gray-500">"What are my best selling items?"</p>
+                                                    <p className="text-gray-500">"Which items should I promote more?"</p>
+                                                    <p className="text-gray-500">"What items have the highest profit margin?"</p>
+                                                    <p className="text-gray-500">"How can I improve my Dogs category?"</p>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            chatMessages.map((msg) => (
+                                                <div
+                                                    key={msg.id}
+                                                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                                >
+                                                    <div
+                                                        className={`max-w-[80%] p-3 rounded-lg ${msg.role === 'user'
+                                                                ? 'bg-white text-black'
+                                                                : 'bg-gray-800 text-white'
+                                                            }`}
+                                                    >
+                                                        <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
+                                                        <p className="text-xs mt-1 opacity-50">
+                                                            {msg.timestamp.toLocaleTimeString()}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                        {chatLoading && (
+                                            <div className="flex justify-start">
+                                                <div className="bg-gray-800 p-3 rounded-lg">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                                                        <span className="text-sm text-gray-400">Analyzing...</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div ref={chatEndRef} />
+                                    </div>
+
+                                    {/* Chat Input */}
+                                    <div className="p-3 border-t border-gray-800 bg-gray-900">
+                                        <form
+                                            onSubmit={(e) => {
+                                                e.preventDefault();
+                                                sendChatMessage();
+                                            }}
+                                            className="flex gap-2"
+                                        >
+                                            <Input
+                                                value={chatInput}
+                                                onChange={(e) => setChatInput(e.target.value)}
+                                                placeholder="Ask about your analytics data..."
+                                                disabled={chatLoading}
+                                                className="flex-1"
+                                            />
+                                            <Button
+                                                type="submit"
+                                                disabled={!chatInput.trim() || chatLoading}
+                                            >
+                                                Send
+                                            </Button>
+                                        </form>
+                                    </div>
                                 </div>
                             )}
                         </CardContent>

@@ -252,7 +252,7 @@ function QRCodeContent() {
                         </div>
                         <div className="space-y-2">
                             <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
-                                <span className="text-xl">📱</span>
+                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="5" y="2" width="14" height="20" rx="2" strokeWidth="2" /><circle cx="12" cy="18" r="1" fill="currentColor" /></svg>
                             </div>
                             <h4 className="font-medium text-white">Social Media</h4>
                             <p className="text-sm text-gray-400">

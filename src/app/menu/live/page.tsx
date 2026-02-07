@@ -99,7 +99,7 @@ export default function LiveMenuPage() {
                 name: 'Appetizers',
                 position: 0,
                 items: [
-                    { id: '1', name: 'Spring Rolls', description: 'Crispy vegetable rolls', price: 8.99, badges: ['🔥 Popular'], isHighlighted: true },
+                    { id: '1', name: 'Spring Rolls', description: 'Crispy vegetable rolls', price: 8.99, badges: ['Popular'], isHighlighted: true },
                     { id: '2', name: 'Soup of the Day', description: 'Ask your server', price: 6.99, badges: [], isHighlighted: false },
                     { id: '3', name: 'Bruschetta', description: 'Tomato, basil, garlic', price: 9.99, badges: ["Chef's Pick"], isHighlighted: false },
                 ],
@@ -120,7 +120,7 @@ export default function LiveMenuPage() {
                 name: 'Desserts',
                 position: 2,
                 items: [
-                    { id: '8', name: 'Chocolate Lava Cake', description: 'Warm, with vanilla ice cream', price: 9.99, badges: ['🔥 Trending'], isHighlighted: true },
+                    { id: '8', name: 'Chocolate Lava Cake', description: 'Warm, with vanilla ice cream', price: 9.99, badges: ['Trending'], isHighlighted: true },
                     { id: '9', name: 'Cheesecake', description: 'New York style', price: 8.99, badges: [], isHighlighted: false },
                 ],
             },

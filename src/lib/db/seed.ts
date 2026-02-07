@@ -14,7 +14,7 @@ import { users, restaurants, menuSections, menuItems } from './schema';
 import { hashPassword } from '../services/auth.service';
 
 async function seed() {
-    console.log('🌱 Starting database seed...\n');
+    console.log('Starting database seed...\n');
 
     try {
         // Create demo user
@@ -29,9 +29,9 @@ async function seed() {
         }).onConflictDoNothing().returning();
 
         if (demoUser) {
-            console.log(`✅ Created user: ${demoUser.email} (ID: ${demoUser.id})`);
+            console.log(`Created user: ${demoUser.email} (ID: ${demoUser.id})`);
         } else {
-            console.log('ℹ️  Demo user already exists');
+            console.log('Demo user already exists');
             const existingUser = await db.query.users.findFirst({
                 where: (users, { eq }) => eq(users.email, 'demo@tweny.ai'),
             });
@@ -65,9 +65,9 @@ async function seed() {
         }).onConflictDoNothing().returning();
 
         if (demoRestaurant) {
-            console.log(`✅ Created restaurant: ${demoRestaurant.name} (ID: ${demoRestaurant.id})`);
+            console.log(`Created restaurant: ${demoRestaurant.name} (ID: ${demoRestaurant.id})`);
         } else {
-            console.log('ℹ️  Demo restaurant might already exist');
+            console.log('Demo restaurant might already exist');
         }
 
         // Get the restaurant ID
@@ -94,7 +94,7 @@ async function seed() {
                 ...section,
             }).onConflictDoNothing();
         }
-        console.log(`✅ Created ${sectionData.length} menu sections`);
+        console.log(`Created ${sectionData.length} menu sections`);
 
         // Create some sample menu items
         console.log('\nCreating sample menu items...');
@@ -136,15 +136,15 @@ async function seed() {
                 }).onConflictDoNothing();
             }
         }
-        console.log(`✅ Created ${sampleItems.length} menu items`);
+        console.log(`Created ${sampleItems.length} menu items`);
 
-        console.log('\n🎉 Database seed completed successfully!');
-        console.log('\n📝 Demo credentials:');
+        console.log('\nDatabase seed completed successfully!');
+        console.log('\nDemo credentials:');
         console.log('   Email: demo@tweny.ai');
         console.log('   Password: demo1234');
 
     } catch (error) {
-        console.error('❌ Seed error:', error);
+        console.error('Seed error:', error);
         process.exit(1);
     }
 

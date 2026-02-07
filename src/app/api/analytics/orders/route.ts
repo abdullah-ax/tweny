@@ -306,7 +306,7 @@ export async function POST(request: Request) {
             }
         }
 
-        console.log(`📊 Order saved to DB: #${newOrder.id} - $${orderTotal.toFixed(2)} (${items.length} items)`);
+        console.log(`Order saved to DB: #${newOrder.id} - $${orderTotal.toFixed(2)} (${items.length} items)`);
 
         return NextResponse.json({ success: true, orderId: newOrder.id });
     } catch (error) {
@@ -326,7 +326,7 @@ export async function PUT(request: Request) {
         }
 
         // Menu changes are tracked via the layouts table (published layouts)
-        console.log(`📝 Menu change recorded: ${description}`);
+        console.log(`Menu change recorded: ${description}`);
 
         return NextResponse.json({ success: true });
     } catch (error) {

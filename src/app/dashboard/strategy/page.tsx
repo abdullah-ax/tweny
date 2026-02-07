@@ -122,7 +122,7 @@ export default function StrategyPage() {
         const loadMenuData = async () => {
             // First try sessionStorage (fresh upload)
             let ctx = sessionStorage.getItem('menuContext');
-            
+
             if (!ctx) {
                 // Try to load from database - check if user has a restaurant
                 const token = localStorage.getItem('token');
@@ -135,12 +135,12 @@ export default function StrategyPage() {
                             const data = await res.json();
                             if (data.restaurants?.length > 0) {
                                 const restaurantId = data.restaurants[0].id;
-                                
+
                                 // Fetch saved context from database
                                 const contextRes = await fetch(`/api/menu/import?restaurantId=${restaurantId}`);
                                 if (contextRes.ok) {
                                     const dbContext = await contextRes.json();
-                                    
+
                                     if (dbContext.menuItems?.length > 0) {
                                         // Reconstruct context from database
                                         const reconstructedContext = {
@@ -155,7 +155,7 @@ export default function StrategyPage() {
                                             categories: dbContext.sections?.map((s: any) => s.title) || ['Menu'],
                                             extractedColors: dbContext.context?.colorPalette || null,
                                         };
-                                        
+
                                         // Store in session for this visit
                                         sessionStorage.setItem('menuContext', JSON.stringify(reconstructedContext));
                                         ctx = JSON.stringify(reconstructedContext);
@@ -227,9 +227,9 @@ export default function StrategyPage() {
 
                     // Add badges based on strategy
                     const badges: string[] = [];
-                    if (strategyId === 'scarcity' && itemIdx === 0) badges.push('🔥 Most Popular');
-                    if (strategyId === 'scarcity' && itemIdx === 1) badges.push('⭐ Chef\'s Pick');
-                    if (strategyId === 'golden-triangle' && itemIdx === 0) badges.push('⭐ Featured');
+                    if (strategyId === 'scarcity' && itemIdx === 0) badges.push('Most Popular');
+                    if (strategyId === 'scarcity' && itemIdx === 1) badges.push("Chef's Pick");
+                    if (strategyId === 'golden-triangle' && itemIdx === 0) badges.push('Featured');
 
                     return {
                         id: item.id || `item-${idx}-${itemIdx}`,
