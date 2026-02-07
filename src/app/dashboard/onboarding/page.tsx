@@ -170,24 +170,48 @@ export default function OnboardingPage() {
                 const allRows = csvParseResults.flatMap(r => r.rows);
                 salesContext = CSVImportService.aggregateSalesData(allRows);
 
-                // Convert menu items to context items
-                const baseItems: ContextMenuItem[] = ('items' in menuData ? menuData.items : []).map((item, idx) => ({
-                    id: `item_${idx}`,
-                    name: item.name,
-                    description: item.description,
-                    price: typeof item.price === 'number' ? item.price : parseFloat(item.price || '0'),
-                    category: item.category || 'Uncategorized',
-                }));
+                // Convert menu items to context items with proper price parsing
+                const baseItems: ContextMenuItem[] = ('items' in menuData ? menuData.items : []).map((item, idx) => {
+                    let price = 0;
+                    if (item.price !== undefined && item.price !== null) {
+                        if (typeof item.price === 'number') {
+                            price = item.price;
+                        } else {
+                            const cleaned = String(item.price).replace(/[^\d.,]/g, '').replace(',', '.');
+                            price = parseFloat(cleaned) || 0;
+                        }
+                    }
+                    return {
+                        id: `item_${idx}`,
+                        name: item.name,
+                        description: item.description,
+                        price,
+                        category: item.category || 'Uncategorized',
+                    };
+                });
 
                 enrichedItems = CSVImportService.enrichMenuItems(baseItems, allRows);
             } else {
-                enrichedItems = ('items' in menuData ? menuData.items : []).map((item, idx) => ({
-                    id: `item_${idx}`,
-                    name: item.name,
-                    description: item.description,
-                    price: typeof item.price === 'number' ? item.price : parseFloat(item.price || '0'),
-                    category: item.category || 'Uncategorized',
-                }));
+                enrichedItems = ('items' in menuData ? menuData.items : []).map((item, idx) => {
+                    // Robust price parsing - handle string, number, undefined
+                    let price = 0;
+                    if (item.price !== undefined && item.price !== null) {
+                        if (typeof item.price === 'number') {
+                            price = item.price;
+                        } else {
+                            // Parse string price, removing currency symbols
+                            const cleaned = String(item.price).replace(/[^\d.,]/g, '').replace(',', '.');
+                            price = parseFloat(cleaned) || 0;
+                        }
+                    }
+                    return {
+                        id: `item_${idx}`,
+                        name: item.name,
+                        description: item.description,
+                        price,
+                        category: item.category || 'Uncategorized',
+                    };
+                });
             }
 
             // Step 5: Build context

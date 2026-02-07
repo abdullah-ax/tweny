@@ -13,15 +13,17 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
         }
 
-        const systemPrompt = `You are a menu data extraction expert. Given raw OCR text from a restaurant menu, extract ONLY the real menu items.
+        const systemPrompt = `You are a menu data extraction expert. Given raw OCR text from a restaurant menu, extract ONLY the real menu items with their prices.
 
-RULES:
+CRITICAL RULES:
 - Extract only food/drink items with their prices
+- PRICES ARE REQUIRED: If you cannot find a price, estimate based on similar items or use 0
 - Ignore: addresses, phone numbers, website URLs, restaurant names, headers, footers, page numbers, noise/gibberish
 - Group items into sensible categories (Appetizers, Main Course, Desserts, Beverages, etc.)
 - If no clear category, use "Menu" as default
 - Clean up item names (fix OCR errors, proper capitalization)
-- Extract prices as numbers (no currency symbols)
+- Extract prices as NUMBERS ONLY (no currency symbols) - e.g., 12.99 not "$12.99" or "EGP 50"
+- If price is missing, look for numbers near the item name
 
 Return ONLY valid JSON in this exact format:
 {
@@ -30,6 +32,8 @@ Return ONLY valid JSON in this exact format:
   ],
   "categories": ["Category1", "Category2"]
 }
+
+IMPORTANT: Every item MUST have a numeric price > 0. If unsure, estimate based on context.
 
 If the text has no valid menu items, return: {"items": [], "categories": []}`;
 
@@ -102,6 +106,18 @@ function validateItem(item: any): item is MenuItem {
     if (!item || typeof item !== 'object') return false;
     if (!item.name || typeof item.name !== 'string') return false;
     if (item.name.length < 2 || item.name.length > 100) return false;
+
+    // Ensure price is a valid positive number
+    if (item.price !== undefined && item.price !== null) {
+        const price = typeof item.price === 'number' ? item.price : parseFloat(String(item.price).replace(/[^\d.,]/g, '').replace(',', '.'));
+        if (isNaN(price) || price < 0) {
+            item.price = 0;
+        } else {
+            item.price = price;
+        }
+    } else {
+        item.price = 0;
+    }
 
     // Filter out common junk patterns
     const junkPatterns = [

@@ -572,7 +572,7 @@ export class MenuStrategyService {
             if (!sectionMap[cat]) {
                 sectionMap[cat] = [];
             }
-            
+
             // Determine quadrant for sorting
             let quadrant: 'star' | 'puzzle' | 'plowhorse' | 'dog' | undefined;
             if (menuEngineering) {
@@ -597,7 +597,7 @@ export class MenuStrategyService {
         return Object.entries(sectionMap).map(([name, sectionItems], idx) => {
             // Sort items by quadrant priority: Stars → Puzzles → Plowhorses → Dogs
             const sortedItems = this.sortItemsByQuadrant(sectionItems);
-            
+
             // Apply visibility limits: max 7 items before "More" section
             // Mark items after position 7 as lower priority
             sortedItems.forEach((item, itemIdx) => {
@@ -641,13 +641,13 @@ export class MenuStrategyService {
      */
     private static enhanceDescription(description: string): string {
         // If description is already sensory-rich, return as-is
-        const sensoryWords = ['crispy', 'golden', 'tender', 'aromatic', 'fresh', 'creamy', 
-                             'savory', 'rich', 'zesty', 'smoky', 'grilled', 'roasted', 
-                             'house-made', 'slow-cooked', 'hand-crafted'];
-        
+        const sensoryWords = ['crispy', 'golden', 'tender', 'aromatic', 'fresh', 'creamy',
+            'savory', 'rich', 'zesty', 'smoky', 'grilled', 'roasted',
+            'house-made', 'slow-cooked', 'hand-crafted'];
+
         const lowerDesc = description.toLowerCase();
         const hasSensoryWords = sensoryWords.some(word => lowerDesc.includes(word));
-        
+
         if (hasSensoryWords || description.length > 80) {
             return description;
         }

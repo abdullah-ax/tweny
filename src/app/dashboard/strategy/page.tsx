@@ -116,25 +116,79 @@ export default function StrategyPage() {
     const [selected, setSelected] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+    const [contextData, setContextData] = useState<any>(null);
 
     useEffect(() => {
-        const ctx = sessionStorage.getItem('menuContext');
-        if (!ctx) {
-            router.push('/dashboard/onboarding');
-            return;
-        }
-
-        // Load menu items from context
-        try {
-            const parsed = JSON.parse(ctx);
-            if (parsed.items && parsed.items.length > 0) {
-                setMenuItems(parsed.items);
+        const loadMenuData = async () => {
+            // First try sessionStorage (fresh upload)
+            let ctx = sessionStorage.getItem('menuContext');
+            
+            if (!ctx) {
+                // Try to load from database - check if user has a restaurant
+                const token = localStorage.getItem('token');
+                if (token) {
+                    try {
+                        const res = await fetch('/api/restaurants', {
+                            headers: { Authorization: `Bearer ${token}` },
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data.restaurants?.length > 0) {
+                                const restaurantId = data.restaurants[0].id;
+                                
+                                // Fetch saved context from database
+                                const contextRes = await fetch(`/api/menu/import?restaurantId=${restaurantId}`);
+                                if (contextRes.ok) {
+                                    const dbContext = await contextRes.json();
+                                    
+                                    if (dbContext.menuItems?.length > 0) {
+                                        // Reconstruct context from database
+                                        const reconstructedContext = {
+                                            restaurantId,
+                                            items: dbContext.menuItems.map((item: any) => ({
+                                                id: item.id.toString(),
+                                                name: item.name,
+                                                description: item.description,
+                                                price: parseFloat(item.price) || 0,
+                                                category: dbContext.sections?.find((s: any) => s.id === item.sectionId)?.title || 'Menu',
+                                            })),
+                                            categories: dbContext.sections?.map((s: any) => s.title) || ['Menu'],
+                                            extractedColors: dbContext.context?.colorPalette || null,
+                                        };
+                                        
+                                        // Store in session for this visit
+                                        sessionStorage.setItem('menuContext', JSON.stringify(reconstructedContext));
+                                        ctx = JSON.stringify(reconstructedContext);
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Failed to load from database:', e);
+                    }
+                }
             }
-        } catch (e) {
-            console.error('Failed to parse menu context:', e);
-        }
 
-        setTimeout(() => setLoading(false), 400);
+            if (!ctx) {
+                router.push('/dashboard/onboarding');
+                return;
+            }
+
+            // Load menu items from context
+            try {
+                const parsed = JSON.parse(ctx);
+                if (parsed.items && parsed.items.length > 0) {
+                    setMenuItems(parsed.items);
+                }
+                setContextData(parsed);
+            } catch (e) {
+                console.error('Failed to parse menu context:', e);
+            }
+
+            setTimeout(() => setLoading(false), 400);
+        };
+
+        loadMenuData();
     }, [router]);
 
     /**
@@ -196,34 +250,30 @@ export default function StrategyPage() {
         if (selected) {
             const strategy = strategies.find(s => s.id === selected);
 
-            // Get colors from context if available, otherwise use defaults
-            const ctx = sessionStorage.getItem('menuContext');
-            let extractedColors = null;
+            // Use already loaded context data
+            let extractedColors = contextData?.extractedColors || null;
             let items: MenuItem[] = menuItems;
 
-            if (ctx) {
-                try {
-                    const parsed = JSON.parse(ctx);
-                    extractedColors = parsed.extractedColors;
-                    // Also get items from context if not already loaded
-                    if (!items.length && parsed.items) {
-                        items = parsed.items;
-                    }
-                } catch (e) {
-                    console.error('Failed to parse context:', e);
-                }
+            // Also get items from context if not already loaded
+            if (!items.length && contextData?.items) {
+                items = contextData.items;
             }
 
             // Build sections from actual menu items
             const sections = buildSections(items, selected);
 
-            // Default color scheme (can be customized from extracted colors)
+            // Use extracted color scheme from PDF, with smart defaults
             const colorScheme = {
                 primary: extractedColors?.primary || '#1a1a2e',
                 secondary: extractedColors?.secondary || '#16213e',
                 accent: extractedColors?.accent || '#e94560',
                 background: extractedColors?.background || '#0f0f1a',
             };
+
+            // Determine font style based on extracted design
+            const fontStyle = extractedColors?.scheme === 'warm' || extractedColors?.scheme === 'neutral'
+                ? { headingFont: 'Playfair Display', bodyFont: 'Inter' }
+                : { headingFont: 'Montserrat', bodyFont: 'Open Sans' };
 
             sessionStorage.setItem('selectedStrategy', JSON.stringify({
                 id: selected,
@@ -239,9 +289,8 @@ export default function StrategyPage() {
                     highlightStrategy: selected,
                     colorScheme,
                     typography: {
-                        headingFont: 'Playfair Display',
-                        bodyFont: 'Inter',
-                        priceStyle: 'bold',
+                        ...fontStyle,
+                        priceStyle: 'hidden-dollar', // Remove currency symbols per menu engineering
                     },
                     sections,
                 },

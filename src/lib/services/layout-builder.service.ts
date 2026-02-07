@@ -407,8 +407,8 @@ ${type === 'minimal' ? this.getMinimalStyles() : ''}
         : '';
 
     // Price display follows menu psychology: remove currency symbols to reduce price sensitivity
-    const priceDisplay = priceStyle === 'hidden-dollar' 
-      ? item.price.toFixed(0) 
+    const priceDisplay = priceStyle === 'hidden-dollar'
+      ? item.price.toFixed(0)
       : item.price.toFixed(2);
 
     return `
