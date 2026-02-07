@@ -315,6 +315,11 @@ The demo includes sample restaurants with historical sales data, pre-configured 
 
 This project was developed by a collaborative team focused on solving real restaurant challenges through data-driven solutions.
 
+Abdullah Ahmed - Technical Implementation
+Ibrahim Elahmady - Data use techniques
+Hana Elazzazi - Research, Testing, UI/UX principles
+Linah Aboudoma - Research, Testing, UI/UX principles
+
 ---
 
 ## License
