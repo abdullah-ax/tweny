@@ -316,9 +316,9 @@ The demo includes sample restaurants with historical sales data, pre-configured 
 This project was developed by a collaborative team focused on solving real restaurant challenges through data-driven solutions.
 
 Abdullah Ahmed - Technical Implementation
-Ibraheem Elahmady - Data use techniques
-Hana Elazzazi - Research, Testing, UI/UX principles
-Linah Aboudoma - Research, Testing, UI/UX principles
+Ibraheem Elahmady - Tech document and implementation guide, data use techniques
+Hana Elazzazi - PRD drafting, Research, Testing, UI/UX principles
+Linah Aboudoma - Product Management, Research, Testing, UI/UX principles
 
 ---
 

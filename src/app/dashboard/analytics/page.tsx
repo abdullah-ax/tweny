@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState, Suspense, useRef } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Card, CardContent, Badge, Button, Input } from '@/components/ui';
+import { Card, CardContent, Badge } from '@/components/ui';
 
 interface Restaurant {
     id: number;
@@ -57,22 +57,6 @@ interface CategorySummary {
     drinks: number;
     other: number;
     totalItems: number;
-}
-
-interface ChatMessage {
-    id: string;
-    role: 'user' | 'assistant';
-    content: string;
-    timestamp: Date;
-}
-
-interface AnalyticsItem {
-    menuItemId: number;
-    itemName: string;
-    totalRevenue: number;
-    totalQuantitySold: number;
-    grossMargin: number;
-    bcgQuadrant: string;
 }
 
 // SVG Pie Chart Component
@@ -170,16 +154,8 @@ function AnalyticsContent() {
     const [selectedRestaurant, setSelectedRestaurant] = useState<string>(restaurantId || '');
     const [orderAnalytics, setOrderAnalytics] = useState<OrderAnalytics | null>(null);
     const [categoryData, setCategoryData] = useState<CategorySummary | null>(null);
-    const [analyticsItems, setAnalyticsItems] = useState<AnalyticsItem[]>([]);
     const [period, setPeriod] = useState<'7d' | '14d' | '30d'>('30d');
     const [loading, setLoading] = useState(true);
-
-    // Chat state
-    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-    const [chatInput, setChatInput] = useState('');
-    const [chatLoading, setChatLoading] = useState(false);
-    const [showChat, setShowChat] = useState(false);
-    const chatEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         fetchRestaurants();
@@ -234,11 +210,11 @@ function AnalyticsContent() {
             const sectionsRes = await fetch(`/api/restaurants/${selectedRestaurant}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            
+
             if (sectionsRes.ok) {
                 const data = await sectionsRes.json();
                 const sections = data.sections || [];
-                
+
                 // Count items by category
                 const counts: CategorySummary = {
                     appetizers: 0,
@@ -248,12 +224,12 @@ function AnalyticsContent() {
                     other: 0,
                     totalItems: 0,
                 };
-                
+
                 sections.forEach((section: { title: string; items: unknown[] }) => {
                     const title = section.title.toLowerCase();
                     const itemCount = section.items?.length || 0;
                     counts.totalItems += itemCount;
-                    
+
                     if (title.includes('appetizer') || title.includes('starter') || title.includes('small')) {
                         counts.appetizers += itemCount;
                     } else if (title.includes('main') || title.includes('entree') || title.includes('course')) {
@@ -266,106 +242,11 @@ function AnalyticsContent() {
                         counts.other += itemCount;
                     }
                 });
-                
+
                 setCategoryData(counts);
-            }
-            
-            // Also fetch analytics items for chat context
-            const periodDays = period === '7d' ? 7 : period === '14d' ? 14 : 30;
-            const analyticsRes = await fetch(`/api/restaurants/${selectedRestaurant}/analytics?period=${periodDays}`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (analyticsRes.ok) {
-                const analyticsData = await analyticsRes.json();
-                if (analyticsData.items) {
-                    setAnalyticsItems(analyticsData.items);
-                }
             }
         } catch (error) {
             console.error('Failed to fetch category data:', error);
-        }
-    };
-
-    // Chat functionality
-    useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [chatMessages]);
-
-    const sendChatMessage = async () => {
-        if (!chatInput.trim() || chatLoading) return;
-
-        const userMessage: ChatMessage = {
-            id: Date.now().toString(),
-            role: 'user',
-            content: chatInput.trim(),
-            timestamp: new Date(),
-        };
-
-        setChatMessages(prev => [...prev, userMessage]);
-        setChatInput('');
-        setChatLoading(true);
-
-        try {
-            const token = localStorage.getItem('token');
-
-            // Build context for AI with real analytics data
-            const analyticsContext = {
-                summary: orderAnalytics?.summary,
-                categories: categoryData,
-                topItems: orderAnalytics?.topItems?.slice(0, 5),
-                itemDetails: analyticsItems.slice(0, 20).map(item => ({
-                    name: item.itemName,
-                    revenue: item.totalRevenue,
-                    quantity: item.totalQuantitySold,
-                    margin: item.grossMargin,
-                })),
-                period,
-            };
-
-            const prompt = `You are an analytics assistant for a restaurant. You have access to the following real data:
-
-ANALYTICS DATA:
-${JSON.stringify(analyticsContext, null, 2)}
-
-Answer the user's question based on this data. Be specific and reference actual items/numbers when possible. The categories show menu composition: appetizers, main courses, desserts, drinks.
-
-User question: ${chatInput}`;
-
-            const res = await fetch('/api/agent/chat', {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    message: prompt,
-                    restaurantId: Number(selectedRestaurant),
-                }),
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                const assistantMessage: ChatMessage = {
-                    id: (Date.now() + 1).toString(),
-                    role: 'assistant',
-                    content: data.response || 'Sorry, I could not process your request.',
-                    timestamp: new Date(),
-                };
-                setChatMessages(prev => [...prev, assistantMessage]);
-            } else {
-                throw new Error('Failed to get response');
-            }
-        } catch (error) {
-            console.error('Chat error:', error);
-            const errorMessage: ChatMessage = {
-                id: (Date.now() + 1).toString(),
-                role: 'assistant',
-                content: 'Sorry, there was an error processing your question. Please try again.',
-                timestamp: new Date(),
-            };
-            setChatMessages(prev => [...prev, errorMessage]);
-        } finally {
-            setChatLoading(false);
         }
     };
 
@@ -595,94 +476,7 @@ User question: ${chatInput}`;
                         </CardContent>
                     </Card>
 
-                    {/* Analytics Chat */}
-                    <Card>
-                        <CardContent>
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-semibold text-white">Ask About Your Data</h3>
-                                <Button
-                                    variant={showChat ? 'primary' : 'secondary'}
-                                    onClick={() => setShowChat(!showChat)}
-                                >
-                                    {showChat ? 'Hide Chat' : 'Open Chat'}
-                                </Button>
-                            </div>
 
-                            {showChat && (
-                                <div className="border border-gray-800 rounded-lg overflow-hidden">
-                                    {/* Chat Messages */}
-                                    <div className="h-80 overflow-y-auto p-4 space-y-4 bg-gray-900/50">
-                                        {chatMessages.length === 0 ? (
-                                            <div className="text-center text-gray-400 py-8">
-                                                <p className="mb-2">Ask questions about your analytics data:</p>
-                                                <div className="space-y-2 text-sm">
-                                                    <p className="text-gray-500">"What are my best selling items?"</p>
-                                                    <p className="text-gray-500">"Which items should I promote more?"</p>
-                                                    <p className="text-gray-500">"What items have the highest profit margin?"</p>
-                                                    <p className="text-gray-500">"How can I improve my Dogs category?"</p>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            chatMessages.map((msg) => (
-                                                <div
-                                                    key={msg.id}
-                                                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                                                >
-                                                    <div
-                                                        className={`max-w-[80%] p-3 rounded-lg ${msg.role === 'user'
-                                                                ? 'bg-white text-black'
-                                                                : 'bg-gray-800 text-white'
-                                                            }`}
-                                                    >
-                                                        <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
-                                                        <p className="text-xs mt-1 opacity-50">
-                                                            {msg.timestamp.toLocaleTimeString()}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            ))
-                                        )}
-                                        {chatLoading && (
-                                            <div className="flex justify-start">
-                                                <div className="bg-gray-800 p-3 rounded-lg">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                                                        <span className="text-sm text-gray-400">Analyzing...</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                        <div ref={chatEndRef} />
-                                    </div>
-
-                                    {/* Chat Input */}
-                                    <div className="p-3 border-t border-gray-800 bg-gray-900">
-                                        <form
-                                            onSubmit={(e) => {
-                                                e.preventDefault();
-                                                sendChatMessage();
-                                            }}
-                                            className="flex gap-2"
-                                        >
-                                            <Input
-                                                value={chatInput}
-                                                onChange={(e) => setChatInput(e.target.value)}
-                                                placeholder="Ask about your analytics data..."
-                                                disabled={chatLoading}
-                                                className="flex-1"
-                                            />
-                                            <Button
-                                                type="submit"
-                                                disabled={!chatInput.trim() || chatLoading}
-                                            >
-                                                Send
-                                            </Button>
-                                        </form>
-                                    </div>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
                 </>
             ) : (
                 <Card>

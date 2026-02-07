@@ -100,7 +100,6 @@ interface DashboardLayoutProps {
 
 const navigation = [
     { name: 'Setup', href: '/dashboard/onboarding', icon: UploadIcon, description: 'Upload menu & data' },
-    { name: 'Documents', href: '/dashboard/documents', icon: DocumentIcon, description: 'Manage files' },
     { name: 'AI Strategy', href: '/dashboard/strategy', icon: SparklesIcon, description: 'Chat & optimize' },
     { name: 'Deploy', href: '/dashboard/deploy', icon: RocketIcon, description: 'Customize & publish' },
     { name: 'Analytics', href: '/dashboard/analytics', icon: ChartIcon, description: 'Track performance' },
