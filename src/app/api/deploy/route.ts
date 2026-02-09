@@ -2,20 +2,30 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { layouts, restaurants } from '@/lib/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
+import { MenuSectionData } from '@/lib/types/menu.types';
+import { MenuTheme } from '@/lib/services/react-layout.service';
 
 /**
  * Deploy API - Saves menu layouts to database for public access
  * 
- * The deployed menu is:
- * 1. Stored in the layouts table with status='published'
- * 2. HTML/CSS stored in the config JSON field
- * 3. Linked to restaurant for public menu access
+ * The deployed menu supports:
+ * 1. React/Framer layout (preferred) - sections & theme for stunning modern menus
+ * 2. HTML/CSS fallback - for backwards compatibility
+ * 
+ * When reactLayout is provided, it takes priority over HTML/CSS.
  */
+
+interface ReactLayoutData {
+    sections: MenuSectionData[];
+    theme: MenuTheme;
+    restaurantName?: string;
+}
 
 interface DeployRequest {
     restaurantId: number;
-    html: string;
-    css: string;
+    html?: string;
+    css?: string;
+    reactLayout?: ReactLayoutData;
     strategyName?: string;
     strategyId?: string;
     menuContext?: {
@@ -28,11 +38,12 @@ interface DeployRequest {
 export async function POST(request: NextRequest) {
     try {
         const body: DeployRequest = await request.json();
-        const { restaurantId, html, css, strategyName, strategyId, menuContext } = body;
+        const { restaurantId, html, css, reactLayout, strategyName, strategyId, menuContext } = body;
 
-        if (!restaurantId || !html || !css) {
+        // Require either React layout or HTML/CSS
+        if (!restaurantId || (!reactLayout && (!html || !css))) {
             return NextResponse.json(
-                { error: 'restaurantId, html, and css are required' },
+                { error: 'restaurantId and either reactLayout or html/css are required' },
                 { status: 400 }
             );
         }
@@ -85,8 +96,11 @@ export async function POST(request: NextRequest) {
                 publishedAt: new Date(),
                 aiGenerated: true,
                 config: {
-                    html,
-                    css,
+                    // React layout data (preferred for modern menus)
+                    reactLayout: reactLayout || null,
+                    // HTML/CSS fallback for backwards compatibility
+                    html: html || null,
+                    css: css || null,
                     strategyName,
                     menuContext: menuContext ? {
                         itemCount: menuContext.items?.length || 0,
@@ -94,17 +108,19 @@ export async function POST(request: NextRequest) {
                         extractedColors: menuContext.extractedColors,
                     } : null,
                     deployedAt: new Date().toISOString(),
+                    renderMode: reactLayout ? 'react' : 'html',
                 } as any, // Cast to any since we're extending the config type
             })
             .returning();
 
-        console.log(`📦 Deployed menu v${newVersion} for restaurant ${restaurantId}`);
+        console.log(`📦 Deployed menu v${newVersion} for restaurant ${restaurantId} (${reactLayout ? 'React' : 'HTML'} mode)`);
 
         return NextResponse.json({
             success: true,
             layoutId: newLayout.id,
             version: newVersion,
             publishedAt: newLayout.publishedAt,
+            renderMode: reactLayout ? 'react' : 'html',
             message: `Menu v${newVersion} deployed successfully`,
         });
     } catch (error) {

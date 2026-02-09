@@ -98,10 +98,20 @@ interface DashboardLayoutProps {
     children: ReactNode;
 }
 
+// A/B Testing icon
+function ExperimentIcon({ className }: { className?: string }) {
+    return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+    );
+}
+
 const navigation = [
     { name: 'Setup', href: '/dashboard/onboarding', icon: UploadIcon, description: 'Upload menu & data' },
     { name: 'AI Strategy', href: '/dashboard/strategy', icon: SparklesIcon, description: 'Chat & optimize' },
     { name: 'Deploy', href: '/dashboard/deploy', icon: RocketIcon, description: 'Customize & publish' },
+    { name: 'A/B Testing', href: '/dashboard/ab-testing', icon: ExperimentIcon, description: 'Compare variants' },
     { name: 'Analytics', href: '/dashboard/analytics', icon: ChartIcon, description: 'Track performance' },
 ];
 

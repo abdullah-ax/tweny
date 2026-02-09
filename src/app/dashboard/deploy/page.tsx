@@ -577,8 +577,8 @@ Tell me what you'd like to change about your menu design.`,
                 version: deployData.version,
             }));
 
-            // QR code now points to the restaurant-specific URL for DB-backed menu
-            const menuUrl = `${window.location.origin}/menu/${restaurantId}`;
+            // QR code now points to the restaurant-specific URL for the new React menu with A/B testing
+            const menuUrl = `${window.location.origin}/menu/v2/${restaurantId}`;
             setQrUrl(menuUrl);
             setDeployed(true);
 
